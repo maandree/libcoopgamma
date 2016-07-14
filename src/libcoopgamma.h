@@ -1121,12 +1121,14 @@ int libcoopgamma_get_gamma(libcoopgamma_filter_query_t* restrict, libcoopgamma_f
 /**
  * Apply, update, or remove a gamma ramp adjustment
  * 
- * @param   filter  The filter to apply, update, or remove
+ * @param   filter  The filter to apply, update, or remove, gamma ramp meta-data must match the CRTC's
+ * @param   depth   The datatype for the stops in the gamma ramps, must match the CRTC's
  * @param   ctx     The state of the library, must be connected
  * @return          Zero on success, -1 on error, in which case `ctx->error`
  *                  (rather than `errno`) is read for information about the error
  */
-int libcoopgamma_set_gamma(libcoopgamma_filter_t* restrict, libcoopgamma_context_t* restrict);
+int libcoopgamma_set_gamma(libcoopgamma_filter_t* restrict, libcoopgamma_depth_t,
+			   libcoopgamma_context_t* restrict);
 
 
 

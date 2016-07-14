@@ -20,6 +20,7 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -104,6 +105,15 @@ char* argv0 __attribute__((weak)) = "libcoopgamma";
 	(datum) = NULL;						\
     }								\
   while (0)
+
+
+
+#define copy_errno(ctx)				\
+  ((ctx)->error.number = (uint64_t)errno,	\
+   (ctx)->error.custom = 0,			\
+   (ctx)->error.server_side = 0,		\
+   free((ctx)->error.description),		\
+   (ctx)->error.description = NULL)
 
 
 
@@ -1160,6 +1170,53 @@ int libcoopgamma_connect(const char* restrict method, const char* restrict site,
 
 
 /**
+ * Send a message to the server and wait for response
+ * 
+ * @param  resp:char**                  Output parameter for the response,
+ *                                      will be NUL-terminated
+ * @param  ctx:libcoopgamma_context_t*  The state of the library
+ * @param  payload:void*                Data to append to the end of the message
+ * @param  payload_size:size_t          Byte-size of `payload`
+ * @param  format:string-literal        Message formatting string
+ * @param  ...                          Message formatting arguments
+ * 
+ * On and only on error, `*(resp)` is set to `NULL`
+ */
+#define communicate(respp, ctx, payload, payload_size, format, ...)		\
+  do										\
+    {										\
+      ssize_t n__;								\
+      char* msg__;								\
+      snprintf(NULL, 0, format "%zn", __VA_ARGS__, &n__);			\
+      msg__ = malloc((size_t)n__ + (payload_size));				\
+      if (msg__ == NULL)							\
+	{									\
+	  copy_errno(ctx);							\
+	  *(respp) = NULL;							\
+	  break;								\
+	}									\
+      sprintf(msg__, format, __VA_ARGS__);					\
+      if ((payload) != NULL)							\
+	memcpy(msg__ + n__, (payload), (payload_size));				\
+      *(respp) = (communicate)((ctx), msg__, (size_t)n__ + (payload_size));	\
+    }										\
+  while (0)
+
+
+/**
+ * Send a message to the server and wait for response
+ * 
+ * @param   ctx  The state of the library
+ * @param   msg  The message to send
+ * @param   n    The length of `msg`
+ * @return       NUL-terminated response, `NULL` on error
+ */
+static char* (communicate)(libcoopgamma_context_t* restrict ctx, char* msg, size_t n)
+{
+}
+
+
+/**
  * List all available CRTC:s
  * 
  * Cannot be used before connecting to the server
@@ -1173,6 +1230,13 @@ int libcoopgamma_connect(const char* restrict method, const char* restrict site,
  */
 char** libcoopgamma_enumerate_crtcs(libcoopgamma_context_t* restrict ctx)
 {
+  char* resp;
+  
+  communicate(&resp, ctx, NULL, 0,
+	      "Command: enumerate-crtcs\n"
+	      "Message ID: %" PRIu32 "\n"
+	      "\n",
+	      ctx->message_id);
 }
 
 
@@ -1190,6 +1254,26 @@ char** libcoopgamma_enumerate_crtcs(libcoopgamma_context_t* restrict ctx)
 int libcoopgamma_get_gamma_info(const char* crtc, libcoopgamma_crtc_info_t* restrict info,
 				libcoopgamma_context_t* restrict ctx)
 {
+  char* resp;
+  
+  if ((crtc == NULL) || strchr(crtc, '\n'))
+    {
+      errno = EINVAL;
+      goto fail;
+    }
+  
+  communicate(&resp, ctx, NULL, 0,
+	      "Command: get-gamma-info\n"
+	      "Message ID: %" PRIu32 "\n"
+	      "CRTC: %s\n"
+	      "\n",
+	      ctx->message_id, crtc);
+  if (resp == NULL)
+    return -1;
+  
+ fail:
+  copy_errno(ctx);
+  return -1;
 }
 
 
@@ -1207,18 +1291,110 @@ int libcoopgamma_get_gamma_info(const char* crtc, libcoopgamma_crtc_info_t* rest
 int libcoopgamma_get_gamma(libcoopgamma_filter_query_t* restrict query,
 			   libcoopgamma_filter_table_t* restrict table, libcoopgamma_context_t* restrict ctx)
 {
+  char* resp;
+  
+  if ((query == NULL) || (query->crtc == NULL) || strchr(query->crtc, '\n'))
+    {
+      errno = EINVAL;
+      goto fail;
+    }
+  
+  communicate(&resp, ctx, NULL, 0,
+	      "Command: get-gamma\n"
+	      "Message ID: %" PRIu32 "\n"
+	      "CRTC: %s\n"
+	      "Coalesce: %s\n"
+	      "High priority: %" PRIi64 "\n"
+	      "Low priority: %" PRIi64 "\n"
+	      "\n",
+	      ctx->message_id, query->crtc, query->coalesce ? "yes" : "no",
+	      query->high_priority, query->low_priority);
+  if (resp == NULL)
+    return -1;
+  
+ fail:
+  copy_errno(ctx);
+  return -1;
 }
 
 
 /**
  * Apply, update, or remove a gamma ramp adjustment
  * 
- * @param   filter  The filter to apply, update, or remove
+ * @param   filter  The filter to apply, update, or remove, gamma ramp meta-data must match the CRTC's
+ * @param   depth   The datatype for the stops in the gamma ramps, must match the CRTC's
  * @param   ctx     The state of the library, must be connected
  * @return          Zero on success, -1 on error, in which case `ctx->error`
  *                  (rather than `errno`) is read for information about the error
  */
-int libcoopgamma_set_gamma(libcoopgamma_filter_t* restrict filter, libcoopgamma_context_t* restrict ctx)
+int libcoopgamma_set_gamma(libcoopgamma_filter_t* restrict filter, libcoopgamma_depth_t depth,
+			   libcoopgamma_context_t* restrict ctx)
 {
+  const void* payload = NULL;
+  const char* lifespan;
+  char priority[sizeof("Priority: \n") + 3 * sizeof(int64_t)] = {'\0'};
+  char length  [sizeof("Length: \n")   + 3 * sizeof(size_t) ] = {'\0'};
+  size_t payload_size = 0, stopwidth = 0;
+  char* resp;
+  
+  if ((filter == NULL) || (filter->crtc == NULL) || strchr(filter->crtc, '\n') ||
+      (filter->class == NULL) || strchr(filter->class, '\n'))
+    {
+      errno = EINVAL;
+      goto fail;
+    }
+  
+  switch (filter->lifespan)
+    {
+    case LIBCOOPGAMMA_REMOVE:         lifespan = "remove";         break;
+    case LIBCOOPGAMMA_UNTIL_DEATH:    lifespan = "until-death";    break;
+    case LIBCOOPGAMMA_UNTIL_REMOVAL:  lifespan = "until-removal";  break;
+    default:
+      errno = EINVAL;
+      goto fail;
+    }
+  
+  switch (depth)
+    {
+    case LIBCOOPGAMMA_FLOAT:   stopwidth = sizeof(float);   break;
+    case LIBCOOPGAMMA_DOUBLE:  stopwidth = sizeof(double);  break;
+    default:
+      if ((depth <= 0) || ((depth & 7) != 0))
+	{
+	  errno = EINVAL;
+	  goto fail;
+	}
+      stopwidth = depth / 8;
+      break;
+    }
+  
+  if (filter->lifespan != LIBCOOPGAMMA_REMOVE)
+    {
+      payload_size  = filter->ramps.u8.red_size;
+      payload_size += filter->ramps.u8.green_size;
+      payload_size += filter->ramps.u8.blue_size;
+      payload_size *= stopwidth;
+      payload = filter->ramps.u8.red;
+      sprintf(priority, "Priority: %" PRIi64 "\n", filter->priority);
+      sprintf(length, "Length: %zu\n", payload_size);
+    }
+  
+  communicate(&resp, ctx, payload, payload_size,
+	      "Command: set-gamma\n"
+	      "Message ID: %" PRIu32 "\n"
+	      "CRTC: %s\n"
+	      "Class: %s\n"
+	      "Lifespan: %s\n"
+	      "%s"
+	      "%s"
+	      "\n",
+	      ctx->message_id, filter->crtc, filter->class, lifespan,
+	      priority, length);
+  if (resp == NULL)
+    return -1;
+  
+ fail:
+  copy_errno(ctx);
+  return -1;
 }
 
