@@ -91,7 +91,7 @@
  * version of `libcoopgamma_ctrc_info_t`, if it
  * is ever modified, this number is increased
  */
-#define LIBCOOPGAMMA_CTRC_INFO_VERSION  0
+#define LIBCOOPGAMMA_CRTC_INFO_VERSION  0
 
 /**
  * Number used to identify implementation
@@ -613,6 +613,8 @@ typedef struct libcoopgamma_context
  * Initialise a `libcoopgamma_ramps8_t`, `libcoopgamma_ramps16_t`, `libcoopgamma_ramps32_t`,
  * `libcoopgamma_ramps64_t`, `libcoopgamma_rampsf_t`, or `libcoopgamma_rampsd_t`
  * 
+ * `this->red_size`, `this->green_size`, and `this->blue_size` must already be set
+ * 
  * @param   this  The record to initialise
  * @return        Zero on success, -1 on error
  */
@@ -650,6 +652,8 @@ typedef struct libcoopgamma_context
  * Initialise a `libcoopgamma_ramps8_t`, `libcoopgamma_ramps16_t`, `libcoopgamma_ramps32_t`,
  * `libcoopgamma_ramps64_t`, `libcoopgamma_rampsf_t`, or `libcoopgamma_rampsd_t`
  * 
+ * `this->red_size`, `this->green_size`, and `this->blue_size` must already be set
+ * 
  * @param   this   The record to initialise
  * @para    width  The `sizeof(*(this->red))`
  * @return         Zero on success, -1 on error
@@ -664,8 +668,7 @@ int (libcoopgamma_ramps_initialise)(void* restrict, size_t);
  * Always call this function after failed call to `libcoopgamma_ramps_initialise`
  * or failed call to `libcoopgamma_ramps_unmarshal`
  * 
- * @param   this   The record to destroy
- * @return         Zero on success, -1 on error
+ * @param  this  The record to destroy
  */
 void libcoopgamma_ramps_destroy(void* restrict);
 
@@ -680,7 +683,7 @@ void libcoopgamma_ramps_destroy(void* restrict);
  * @return         The number of marshalled bytes, or if `buf == NULL`,
  *                 how many bytes would be marshalled if `buf != NULL`
  */
-size_t (libcoopgamma_ramps_marshal)(void* restrict, void* restrict, size_t);
+size_t (libcoopgamma_ramps_marshal)(const void* restrict, void* restrict, size_t);
 
 /**
  * Unmarshal a `libcoopgamma_ramps8_t`, `libcoopgamma_ramps16_t`, `libcoopgamma_ramps32_t`,
@@ -693,7 +696,7 @@ size_t (libcoopgamma_ramps_marshal)(void* restrict, void* restrict, size_t);
  * @return         `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                 `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
-int (libcoopgamma_ramps_unmarshal)(void* restrict, const void* restrict, size_t*, size_t);
+int (libcoopgamma_ramps_unmarshal)(void* restrict, const void* restrict, size_t* restrict, size_t);
 
 
 /**
@@ -711,8 +714,7 @@ int libcoopgamma_filter_initialise(libcoopgamma_filter_t* restrict);
  * Always call this function after failed call to `libcoopgamma_filter_initialise`
  * or failed call to `libcoopgamma_filter_unmarshal`
  * 
- * @param   this   The record to destroy
- * @return         Zero on success, -1 on error
+ * @param  this  The record to destroy
  */
 void libcoopgamma_filter_destroy(libcoopgamma_filter_t* restrict);
 
@@ -736,7 +738,7 @@ size_t libcoopgamma_filter_marshal(const libcoopgamma_filter_t* restrict, void* 
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
-int libcoopgamma_filter_unmarshal(libcoopgamma_filter_t* restrict, const void* restrict, size_t*);
+int libcoopgamma_filter_unmarshal(libcoopgamma_filter_t* restrict, const void* restrict, size_t* restrict);
 
 
 /**
@@ -754,8 +756,7 @@ int libcoopgamma_crtc_info_initialise(libcoopgamma_crtc_info_t* restrict);
  * Always call this function after failed call to `libcoopgamma_crtc_info_initialise`
  * or failed call to `libcoopgamma_crtc_info_unmarshal`
  * 
- * @param   this   The record to destroy
- * @return         Zero on success, -1 on error
+ * @param  this  The record to destroy
  */
 void libcoopgamma_crtc_info_destroy(libcoopgamma_crtc_info_t* restrict);
 
@@ -779,7 +780,8 @@ size_t libcoopgamma_crtc_info_marshal(const libcoopgamma_crtc_info_t* restrict, 
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
-int libcoopgamma_crtc_info_unmarshal(libcoopgamma_crtc_info_t* restrict, const void* restrict, size_t*);
+int libcoopgamma_crtc_info_unmarshal(libcoopgamma_crtc_info_t* restrict,
+				     const void* restrict, size_t* restrict);
 
 
 /**
@@ -797,8 +799,7 @@ int libcoopgamma_filter_query_initialise(libcoopgamma_filter_query_t* restrict);
  * Always call this function after failed call to `libcoopgamma_filter_query_initialise`
  * or failed call to `libcoopgamma_filter_query_unmarshal`
  * 
- * @param   this   The record to destroy
- * @return         Zero on success, -1 on error
+ * @param  this  The record to destroy
  */
 void libcoopgamma_filter_query_destroy(libcoopgamma_filter_query_t* restrict);
 
@@ -822,7 +823,8 @@ size_t libcoopgamma_filter_query_marshal(const libcoopgamma_filter_query_t* rest
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
-int libcoopgamma_filter_query_unmarshal(libcoopgamma_filter_query_t* restrict, const void* restrict, size_t*);
+int libcoopgamma_filter_query_unmarshal(libcoopgamma_filter_query_t* restrict,
+					const void* restrict, size_t* restrict);
 
 
 /**
@@ -840,32 +842,35 @@ int libcoopgamma_queried_filter_initialise(libcoopgamma_queried_filter_t* restri
  * Always call this function after failed call to `libcoopgamma_queried_filter_initialise`
  * or failed call to `libcoopgamma_queried_filter_unmarshal`
  * 
- * @param   this   The record to destroy
- * @return         Zero on success, -1 on error
+ * @param  this  The record to destroy
  */
 void libcoopgamma_queried_filter_destroy(libcoopgamma_queried_filter_t* restrict);
 
 /**
  * Marshal a `libcoopgamma_queried_filter_t` into a buffer
  * 
- * @param   this  The record to marshal
- * @param   buf   The output buffer, `NULL` to only measure
- *                how large this buffer has to be
- * @return        The number of marshalled bytes, or if `buf == NULL`,
- *                how many bytes would be marshalled if `buf != NULL`
+ * @param   this   The record to marshal
+ * @param   buf    The output buffer, `NULL` to only measure
+ *                 how large this buffer has to be
+ * @param   depth  The type used of ramp stops
+ * @return         The number of marshalled bytes, or if `buf == NULL`,
+ *                 how many bytes would be marshalled if `buf != NULL`
  */
-size_t libcoopgamma_queried_filter_marshal(const libcoopgamma_queried_filter_t* restrict, void* restrict);
+size_t libcoopgamma_queried_filter_marshal(const libcoopgamma_queried_filter_t* restrict, void* restrict,
+					   libcoopgamma_depth_t);
 
 /**
  * Unmarshal a `libcoopgamma_queried_filter_t` from a buffer
  * 
- * @param   this  The output paramater for unmarshalled record
- * @param   buf   The buffer with the marshalled record
- * @param   n     Output parameter for the number of unmarshalled bytes, undefined on failure
- * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
- *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
+ * @param   this   The output paramater for unmarshalled record
+ * @param   buf    The buffer with the marshalled record
+ * @param   n      Output parameter for the number of unmarshalled bytes, undefined on failure
+ * @param   depth  The type used of ramp stops
+ * @return         `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
+ *                 `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
-int libcoopgamma_queried_filter_unmarshal(libcoopgamma_queried_filter_t* restrict, const void* restrict, size_t*);
+int libcoopgamma_queried_filter_unmarshal(libcoopgamma_queried_filter_t* restrict,
+					  const void* restrict, size_t* restrict, libcoopgamma_depth_t);
 
 
 /**
@@ -883,8 +888,7 @@ int libcoopgamma_filter_table_initialise(libcoopgamma_filter_table_t* restrict);
  * Always call this function after failed call to `libcoopgamma_filter_table_initialise`
  * or failed call to `libcoopgamma_filter_table_unmarshal`
  * 
- * @param   this   The record to destroy
- * @return         Zero on success, -1 on error
+ * @param  this  The record to destroy
  */
 void libcoopgamma_filter_table_destroy(libcoopgamma_filter_table_t* restrict);
 
@@ -908,7 +912,8 @@ size_t libcoopgamma_filter_table_marshal(const libcoopgamma_filter_table_t* rest
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
-int libcoopgamma_filter_table_unmarshal(libcoopgamma_filter_table_t* restrict, const void* restrict, size_t*);
+int libcoopgamma_filter_table_unmarshal(libcoopgamma_filter_table_t* restrict,
+					const void* restrict, size_t* restrict);
 
 
 /**
@@ -926,8 +931,7 @@ int libcoopgamma_error_initialise(libcoopgamma_error_t* restrict);
  * Always call this function after failed call to `libcoopgamma_error_initialise`
  * or failed call to `libcoopgamma_error_unmarshal`
  * 
- * @param   this   The record to destroy
- * @return         Zero on success, -1 on error
+ * @param  this  The record to destroy
  */
 void libcoopgamma_error_destroy(libcoopgamma_error_t* restrict);
 
@@ -951,7 +955,7 @@ size_t libcoopgamma_error_marshal(const libcoopgamma_error_t* restrict, void* re
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
-int libcoopgamma_error_unmarshal(libcoopgamma_error_t* restrict, const void* restrict, size_t*);
+int libcoopgamma_error_unmarshal(libcoopgamma_error_t* restrict, const void* restrict, size_t* restrict);
 
 
 /**
@@ -969,9 +973,8 @@ int libcoopgamma_context_initialise(libcoopgamma_context_t* restrict);
  * Always call this function after failed call to `libcoopgamma_context_initialise`
  * or failed call to `libcoopgamma_context_unmarshal`
  * 
- * @param   this        The record to destroy
- * @param   disconnect  Disconnect from the server?
- * @return              Zero on success, -1 on error
+ * @param  this        The record to destroy
+ * @param  disconnect  Disconnect from the server?
  */
 void libcoopgamma_context_destroy(libcoopgamma_context_t* restrict, int);
 
@@ -995,7 +998,7 @@ size_t libcoopgamma_context_marshal(const libcoopgamma_context_t* restrict, void
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
-int libcoopgamma_context_unmarshal(libcoopgamma_context_t* restrict, const void* restrict, size_t*);
+int libcoopgamma_context_unmarshal(libcoopgamma_context_t* restrict, const void* restrict, size_t* restrict);
 
 
 
