@@ -18,11 +18,22 @@
 #include "libcoopgamma.h"
 
 #include <sys/socket.h>
+#include <sys/wait.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+
+
+
+#if defined(__GNUC__)
+# define NAME_OF_THE_PROCESS  (argv0)
+char* argv0 __attribute__((weak)) = "libcoopgamma";
+#else
+# define NAME_OF_THE_PROCESS  ("libcoopgamma")
+#endif
 
 
 
@@ -875,6 +886,116 @@ char** libcoopgamma_get_methods(void)
 
 
 /**
+ * Run coopgammad with -q or -qq and return the response
+ * 
+ * @param   method   The adjustment method, `NULL` for automatic
+ * @param   site     The site, `NULL` for automatic
+ * @param   arg      "-q" or "-qq", which shall be passed to coopgammad?
+ * @return           The output of coopgammad, `NULL` on error. This
+ *                   will be NUL-terminated and will not contain any
+ *                   other `NUL` bytes.
+ */
+static char* libcoopgamma_query(const char* restrict method, const char* restrict site, const char* restrict arg)
+{
+  const char* (args[7]) = {"coopgammad", arg};
+  size_t i = 2, n = 0, size = 0;
+  int pipe_rw[2] = { -1, -1 };
+  pid_t pid;
+  int saved_errno, status;
+  char* msg = NULL;
+  ssize_t got;
+  
+  if (method != NULL)  args[i++] = "-m", args[i++] = method;
+  if (site   != NULL)  args[i++] = "-s", args[i++] = site;
+  
+  args[i] = NULL;
+  
+  if (pipe(pipe_rw) < 0)
+    goto fail;
+  
+  switch ((pid = fork()))
+    {
+    case -1:
+      goto fail;
+    case 0:
+      /* Child */
+      close(pipe_rw[0]);
+      if (pipe_rw[1] != STDOUT_FILENO)
+	{
+	  close(STDOUT_FILENO);
+	  if (dup2(pipe_rw[1], STDOUT_FILENO) < 0)
+	    goto fail_child;
+	  close(pipe_rw[1]);
+	}
+      execvp("coopgammad", (char* const*)(args));
+    fail_child:
+      saved_errno = errno;
+      perror(NAME_OF_THE_PROCESS);
+      if (write(STDOUT_FILENO, &saved_errno, sizeof(int)) != sizeof(int))
+	perror(NAME_OF_THE_PROCESS);
+      exit(1);
+    default:
+      /* Parent */
+      close(pipe_rw[1]), pipe_rw[1] = -1;
+      for (;;)
+	{
+	  if (n == size)
+	    {
+	      void* new = realloc(msg, size = (n ? (n << 1) : 256));
+	      if (new == NULL)
+		goto fail;
+	      msg = new;
+	    }
+	  got = read(pipe_rw[0], msg + n, size - n);
+	  if (got < 0)
+	    {
+	      if (errno == EINTR)
+		continue;
+	      goto fail;
+	    }
+	  else if (got == 0)
+	    break;
+	  n += (size_t)got;
+	}
+      close(pipe_rw[0]), pipe_rw[0] = -1;
+      if (waitpid(pid, &status, 0) < 0)
+	goto fail;
+      if (status)
+	{
+	  errno = EPIPE;
+	  if ((n == sizeof(int)) && (*(int*)msg != 0))
+	    errno = *(int*)msg;
+	}
+      break;
+    }
+  
+  if (n == size)
+    {
+      void* new = realloc(msg, n + 1);
+      if (new == NULL)
+	goto fail;
+      msg = new;
+    }
+  msg[n] = '\0';
+  
+  if (strchr(msg, '\0') != msg + n)
+    {
+      errno = EBADMSG;
+      goto fail;
+    }
+  
+  return msg;
+ fail:
+  saved_errno = errno;
+  if (pipe_rw[0] >= 0)  close(pipe_rw[0]);
+  if (pipe_rw[1] >= 0)  close(pipe_rw[1]);
+  free(msg);
+  errno = saved_errno;
+  return NULL;
+}
+
+
+/**
  * Get the adjustment method and site
  * 
  * @param   method   The adjustment method, `NULL` for automatic
@@ -892,6 +1013,57 @@ char** libcoopgamma_get_methods(void)
 int libcoopgamma_get_method_and_site(const char* restrict method, const char* restrict site,
 				     char** restrict methodp, char** restrict sitep)
 {
+  int saved_errno;
+  char* raw;
+  char* p;
+  char* q;
+  
+  raw = libcoopgamma_query(method, site, "-q");
+  if (raw == NULL)
+    return -1;
+  
+  if (methodp != NULL)  *methodp = NULL;
+  if (sitep   != NULL)  *sitep   = NULL;
+  
+  p = strchr(raw, '\n');
+  if (p == NULL)
+    {
+      errno = EBADMSG;
+      goto fail;
+    }
+  *p++ = '\0';
+  
+  if (methodp != NULL)
+    {
+      *methodp = malloc(strlen(raw) + 1);
+      if (*methodp == NULL)
+	goto fail;
+      strcpy(*methodp, raw);
+    }
+  
+  if ((site != NULL) && *(q = strchr(p, '\0') - 1))
+    {
+      if (*q != '\n')
+	{
+	   errno = EBADMSG;
+	   goto fail;
+	}
+      *q = '\0';
+      *sitep = malloc(strlen(p) + 1);
+      if (*sitep == NULL)
+	goto fail;
+      strcpy(*sitep, p);
+    }
+  
+  free(raw);
+  return 0;
+ fail:
+  saved_errno = errno;
+  if (methodp != NULL)
+    free(*methodp), *methodp = NULL;
+  free(raw);
+  errno = saved_errno;
+  return -1;
 }
 
 
@@ -939,6 +1111,33 @@ char* libcoopgamma_get_pid_file(const char* restrict method, const char* restric
  */
 char* libcoopgamma_get_socket_file(const char* restrict method, const char* restrict site)
 {
+  int saved_errno;
+  char* raw;
+  char* p;
+  
+  raw = libcoopgamma_query(method, site, "-qq");
+  if (raw == NULL)
+    return NULL;
+  
+  p = strchr(raw, '\0') - 1;
+  if (*p != '\n')
+    {
+      errno = EBADMSG;
+      goto fail;
+    }
+  *p = '\0';
+  if (*raw == '\0')
+    {
+      errno = EBADMSG;
+      goto fail;
+    }
+  
+  return raw;
+ fail:
+  saved_errno = errno;
+  free(raw);
+  errno = saved_errno;
+  return NULL;
 }
 
 
@@ -955,7 +1154,7 @@ char* libcoopgamma_get_socket_file(const char* restrict method, const char* rest
  *                  to 0 if the server could not be initialised.
  */
 int libcoopgamma_connect(const char* restrict method, const char* restrict site,
-			 libcoopgamma_context_t* restrict ctz)
+			 libcoopgamma_context_t* restrict ctx)
 {
 }
 
