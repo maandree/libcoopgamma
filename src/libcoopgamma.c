@@ -692,6 +692,7 @@ size_t libcoopgamma_error_marshal(const libcoopgamma_error_t* restrict this, voi
   marshal_version(LIBCOOPGAMMA_ERROR_VERSION);
   marshal_prim(this->number, uint64_t);
   marshal_prim(this->custom, int);
+  marshal_prim(this->server_side, int);
   marshal_string(this->description);
   MARSHAL_EPILOGUE;
 }
@@ -730,6 +731,7 @@ int libcoopgamma_context_initialise(libcoopgamma_context_t* restrict this)
 {
   this->fd = -1;
   libcoopgamma_error_initialise(&(this->error));
+  this->message_id = 0;
   return 0;
 }
 
@@ -771,6 +773,7 @@ size_t libcoopgamma_context_marshal(const libcoopgamma_context_t* restrict this,
   marshal_version(LIBCOOPGAMMA_CONTEXT_VERSION);
   marshal_prim(this->fd, int);
   off += libcoopgamma_error_marshal(&(this->error), SUBBUF);
+  marshal_prim(this->message_id, uint32_t);
   MARSHAL_EPILOGUE;
 }
 
@@ -797,6 +800,7 @@ int libcoopgamma_context_unmarshal(libcoopgamma_context_t* restrict this,
   if (r != LIBCOOPGAMMA_SUCCESS)
     return r;
   off += n;
+  unmarshal_prim(this->message_id, uint32_t);
   UNMARSHAL_EPILOGUE;
 }
 
