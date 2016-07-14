@@ -144,7 +144,7 @@ typedef struct libcoopgamma_filter_table
 
 typedef struct libcoopgamma_error
 {
-  int number;
+  uint64_t number;
   int custom;
   char* description;
 } libcoopgamma_error_t;
