@@ -18,6 +18,8 @@
 #include "libcoopgamma.h"
 
 #include <sys/socket.h>
+#include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -802,5 +804,205 @@ int libcoopgamma_context_unmarshal(libcoopgamma_context_t* restrict this,
   off += n;
   unmarshal_prim(this->message_id, uint32_t);
   UNMARSHAL_EPILOGUE;
+}
+
+
+
+/**
+ * List all recognised adjustment method
+ * 
+ * @return  A `NULL`-terminated list of names. You should only free
+ *          the outer pointer, inner pointers are subpointers of the
+ *          outer pointer and cannot be freed. `NULL` on error.
+ */
+char** libcoopgamma_get_methods(void)
+{
+  char num[5]; /* The size is base on the fact that we have limited `n` in the loop below */
+  char** methods = NULL;
+  char** rc;
+  char* buffer;
+  int n = 0, saved_errno;
+  size_t size;
+  
+  methods = malloc(4 * sizeof(*methods));
+  if (methods == NULL)
+    goto fail;
+  
+  for (n = 0; n < 10000 /* just to be safe */; n++)
+    {
+      char* method;
+      if ((n >= 4) && ((n & -n) == n))
+	{
+	  void* new = realloc(methods, (n << 1) * sizeof(*methods));
+	  if (new == NULL)
+	    goto fail;
+	  methods = new;
+	}
+      sprintf(num, "%i", n);
+      if (libcoopgamma_get_method_and_site(num, NULL, &method, NULL))
+	goto fail;
+      if (!strcmp(method, num))
+	{
+	  free(method);
+	  break;
+	}
+      methods[n] = method;
+      size += strlen(method) + 1;
+    }
+  
+  rc = malloc((n + 1) * sizeof(char*) + size);
+  if (rc == NULL)
+    goto fail;
+  buffer = ((char*)rc) + (n + 1) * sizeof(char*);
+  rc[n] = NULL;
+  while (n--)
+    {
+      buffer = stpcpy(buffer, methods[n]) + 1;
+      free(methods[n]);
+    }
+  free(methods);
+  
+  return rc;
+  
+ fail:
+  saved_errno = errno;
+  while (n--)
+    free(methods[n]);
+  free(methods);
+  errno = saved_errno;
+  return NULL;
+}
+
+
+/**
+ * Get the adjustment method and site
+ * 
+ * @param   method   The adjustment method, `NULL` for automatic
+ * @param   site     The site, `NULL` for automatic
+ * @param   methodp  Output pointer for the selected adjustment method,
+ *                   which cannot be `NULL`. It is safe to call
+ *                   this function with this parameter set to `NULL`.
+ * @param   sitep    Output pointer for the selected site, which will
+ *                   be `NULL` the method only supports one site or if
+ *                   `site == NULL` and no site can be selected
+ *                   automatically. It is safe to call this function
+ *                   with this parameter set to `NULL`.
+ * @return           Zero on success, -1 on error
+ */
+int libcoopgamma_get_method_and_site(const char* restrict method, const char* restrict site,
+				     char** restrict methodp, char** restrict sitep)
+{
+}
+
+
+/**
+ * Get the PID file of the coopgamma server
+ * 
+ * @param   method   The adjustment method, `NULL` for automatic
+ * @param   site     The site, `NULL` for automatic
+ * @return           The pathname of the server's PID file, `NULL` on error
+ *                   or if there server does not use PID files. The later
+ *                   case is detected by checking that `errno` is set to 0.
+ */
+char* libcoopgamma_get_pid_file(const char* restrict method, const char* restrict site)
+{
+}
+
+
+/**
+ * Get the socket file of the coopgamma server
+ * 
+ * @param   method   The adjustment method, `NULL` for automatic
+ * @param   site     The site, `NULL` for automatic
+ * @return           The pathname of the server's socket, `NULL` on error
+ *                   or if there server does have its own socket. The later
+ *                   case is detected by checking that `errno` is set to 0,
+ *                   and is the case when communicating with a server in a
+ *                   multi-server display server like mds.
+ */
+char* libcoopgamma_get_socket_file(const char* restrict method, const char* restrict site)
+{
+}
+
+
+
+/**
+ * Connect to a coopgamma server, and start it if necessary
+ * 
+ * Use `libcoopgamma_context_destroy` to disconnect
+ * 
+ * @param   method  The adjustment method, `NULL` for automatic
+ * @param   site    The site, `NULL` for automatic
+ * @param   ctx     The state of the library, must be initialised
+ * @return          Zero on success, -1 on error. On error, `errno` is set
+ *                  to 0 if the server could not be initialised.
+ */
+int libcoopgamma_connect(const char* restrict method, const char* restrict site,
+			 libcoopgamma_context_t* restrict ctz)
+{
+}
+
+
+/**
+ * List all available CRTC:s
+ * 
+ * Cannot be used before connecting to the server
+ * 
+ * @param   ctx  The state of the library, must be connected
+ * @return       A `NULL`-terminated list of names. You should only free
+ *               the outer pointer, inner pointers are subpointers of the
+ *               outer pointer and cannot be freed. `NULL` on error, in
+ *               which case `ctx->error` (rather than `errno`) is read
+ *               for information about the error.
+ */
+char** libcoopgamma_enumerate_crtcs(libcoopgamma_context_t* restrict ctx)
+{
+}
+
+
+/**
+ * Retrieve information about a CRTC:s gamma ramps
+ * 
+ * Cannot be used before connecting to the serve
+ * 
+ * @param   crtc  The name of the CRTC
+ * @param   info  Output parameter for the information, must be initialised
+ * @param   ctx   The state of the library, must be connected
+ * @return        Zero on success, -1 on error, in which case `ctx->error`
+ *                (rather than `errno`) is read for information about the error
+ */
+int libcoopgamma_get_gamma_info(const char* crtc, libcoopgamma_crtc_info_t* restrict info,
+				libcoopgamma_context_t* restrict ctx)
+{
+}
+
+
+/**
+ * Retrieve the current gamma ramp adjustments
+ * 
+ * Cannot be used before connecting to the serve
+ * 
+ * @param   query  The query to send
+ * @param   table  Output for the response, must be initialised
+ * @param   ctx    The state of the library, must be connected
+ * @return         Zero on success, -1 on error, in which case `ctx->error`
+ *                 (rather than `errno`) is read for information about the error
+ */
+int libcoopgamma_get_gamma(libcoopgamma_filter_query_t* restrict query,
+			   libcoopgamma_filter_table_t* restrict table, libcoopgamma_context_t* restrict ctx)
+{
+}
+
+
+/**
+ * Apply, update, or remove a gamma ramp adjustment
+ * 
+ * @param   filter  The filter to apply, update, or remove
+ * @param   ctx     The state of the library, must be connected
+ * @return          Zero on success, -1 on error, in which case `ctx->error`
+ *                  (rather than `errno`) is read for information about the error
+ */
+int libcoopgamma_set_gamma(libcoopgamma_filter_t* restrict filter, libcoopgamma_context_t* restrict ctx)
+{
 }
 

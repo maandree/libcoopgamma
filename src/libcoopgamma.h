@@ -1109,13 +1109,13 @@ int libcoopgamma_get_gamma_info(const char*, libcoopgamma_crtc_info_t* restrict,
  * 
  * Cannot be used before connecting to the serve
  * 
- * @param   query     The query to send
- * @param   response  Output for the response, must be initialised
- * @param   ctx       The state of the library, must be connected
- * @return            Zero on success, -1 on error, in which case `ctx->error`
- *                    (rather than `errno`) is read for information about the error
+ * @param   query  The query to send
+ * @param   table  Output for the response, must be initialised
+ * @param   ctx    The state of the library, must be connected
+ * @return         Zero on success, -1 on error, in which case `ctx->error`
+ *                 (rather than `errno`) is read for information about the error
  */
-int libcoopgamma_get_gamma(libcoopgamma_filter_query_t* restrict, libcoopgamma_filter_table* restrict,
+int libcoopgamma_get_gamma(libcoopgamma_filter_query_t* restrict, libcoopgamma_filter_table_t* restrict,
 			   libcoopgamma_context_t* restrict);
 
 /**
@@ -1126,7 +1126,7 @@ int libcoopgamma_get_gamma(libcoopgamma_filter_query_t* restrict, libcoopgamma_f
  * @return          Zero on success, -1 on error, in which case `ctx->error`
  *                  (rather than `errno`) is read for information about the error
  */
-int libcoopgamma_set_gamma(libcoopgamma_filter* restrict, libcoopgamma_context_t* restrict);
+int libcoopgamma_set_gamma(libcoopgamma_filter_t* restrict, libcoopgamma_context_t* restrict);
 
 
 
