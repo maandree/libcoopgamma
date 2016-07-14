@@ -906,6 +906,23 @@ int libcoopgamma_get_method_and_site(const char* restrict method, const char* re
  */
 char* libcoopgamma_get_pid_file(const char* restrict method, const char* restrict site)
 {
+  char* path;
+  size_t n;
+  
+  path = libcoopgamma_get_socket_file(method, site);
+  if (path == NULL)
+    return NULL;
+  
+  n = strlen(path);
+  if (n < 7 || strcmp(path + n - 7, ".socket"))
+    {
+      free(path);
+      errno = EBADMSG;
+      return NULL;
+    }
+  
+  strcpy(path + n - 7, ".pid");
+  return path;
 }
 
 
