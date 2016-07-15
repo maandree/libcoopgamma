@@ -1311,6 +1311,26 @@ int libcoopgamma_get_crtcs_send(libcoopgamma_context_t* restrict, libcoopgamma_a
 char** libcoopgamma_get_crtcs_recv(libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict);
 
 /**
+ * List all available CRTC:s, synchronous version
+ * 
+ * This is a synchronous request function, as such,
+ * you have to ensure that communication is blocking
+ * (default), and that there are not asynchronous
+ * requests waiting, it also means that EINTR:s are
+ * silently ignored and there no wait to cancel the
+ * operation without disconnection from the server
+ * 
+ * @param   ctx  The state of the library, must be connected
+ * @return       A `NULL`-terminated list of names. You should only free
+ *               the outer pointer, inner pointers are subpointers of the
+ *               outer pointer and cannot be freed. `NULL` on error, in
+ *               which case `ctx->error` (rather than `errno`) is read
+ *               for information about the error.
+ */
+char** libcoopgamma_get_crtcs_sync(libcoopgamma_context_t* restrict);
+
+
+/**
  * Retrieve information about a CRTC:s gamma ramps, send request part
  * 
  * Cannot be used before connecting to the server
@@ -1321,7 +1341,7 @@ char** libcoopgamma_get_crtcs_recv(libcoopgamma_context_t* restrict, libcoopgamm
  *                 identify and parse the response, is stored here
  * @return         Zero on success, -1 on error
  */
-int libcoopgamma_get_gamma_info_send(const char*, libcoopgamma_context_t* restrict,
+int libcoopgamma_get_gamma_info_send(const char* restrict, libcoopgamma_context_t* restrict,
 				     libcoopgamma_async_context_t* restrict);
 
 /**
@@ -1335,6 +1355,26 @@ int libcoopgamma_get_gamma_info_send(const char*, libcoopgamma_context_t* restri
  */
 int libcoopgamma_get_gamma_info_recv(libcoopgamma_crtc_info_t* restrict, libcoopgamma_context_t* restrict,
 				     libcoopgamma_async_context_t* restrict);
+
+/**
+ * Retrieve information about a CRTC:s gamma ramps, synchronous version
+ * 
+ * This is a synchronous request function, as such,
+ * you have to ensure that communication is blocking
+ * (default), and that there are not asynchronous
+ * requests waiting, it also means that EINTR:s are
+ * silently ignored and there no wait to cancel the
+ * operation without disconnection from the server
+ * 
+ * @param   crtc   The name of the CRTC
+ * @param   info   Output parameter for the information, must be initialised
+ * @param   ctx    The state of the library, must be connected
+ * @return         Zero on success, -1 on error, in which case `ctx->error`
+ *                 (rather than `errno`) is read for information about the error
+ */
+int libcoopgamma_get_gamma_info_sync(const char* restrict, libcoopgamma_crtc_info_t* restrict,
+				     libcoopgamma_context_t* restrict);
+
 
 /**
  * Retrieve the current gamma ramp adjustments, send request part
@@ -1363,6 +1403,26 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict, libcoopga
 				libcoopgamma_async_context_t* restrict);
 
 /**
+ * Retrieve the current gamma ramp adjustments, synchronous version
+ * 
+ * This is a synchronous request function, as such,
+ * you have to ensure that communication is blocking
+ * (default), and that there are not asynchronous
+ * requests waiting, it also means that EINTR:s are
+ * silently ignored and there no wait to cancel the
+ * operation without disconnection from the server
+ * 
+ * @param   query  The query to send
+ * @param   table  Output for the response, must be initialised
+ * @param   ctx    The state of the library, must be connected
+ * @return         Zero on success, -1 on error, in which case `ctx->error`
+ *                 (rather than `errno`) is read for information about the error
+ */
+int libcoopgamma_get_gamma_sync(libcoopgamma_filter_query_t* restrict, libcoopgamma_filter_table_t* restrict,
+				libcoopgamma_context_t* restrict);
+
+
+/**
  * Apply, update, or remove a gamma ramp adjustment, send request part
  * 
  * Cannot be used before connecting to the server
@@ -1377,7 +1437,6 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict, libcoopga
 int libcoopgamma_set_gamma_send(libcoopgamma_filter_t* restrict, libcoopgamma_depth_t,
 				libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict);
 
-
 /**
  * Apply, update, or remove a gamma ramp adjustment, receive response part
  * 
@@ -1387,6 +1446,25 @@ int libcoopgamma_set_gamma_send(libcoopgamma_filter_t* restrict, libcoopgamma_de
  *                 (rather than `errno`) is read for information about the error
  */
 int libcoopgamma_set_gamma_recv(libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict);
+
+/**
+ * Apply, update, or remove a gamma ramp adjustment, synchronous version
+ * 
+ * This is a synchronous request function, as such,
+ * you have to ensure that communication is blocking
+ * (default), and that there are not asynchronous
+ * requests waiting, it also means that EINTR:s are
+ * silently ignored and there no wait to cancel the
+ * operation without disconnection from the server
+ * 
+ * @param   filter  The filter to apply, update, or remove, gamma ramp meta-data must match the CRTC's
+ * @param   depth   The datatype for the stops in the gamma ramps, must match the CRTC's
+ * @param   ctx     The state of the library, must be connected
+ * @return          Zero on success, -1 on error, in which case `ctx->error`
+ *                  (rather than `errno`) is read for information about the error
+ */
+int libcoopgamma_set_gamma_sync(libcoopgamma_filter_t* restrict, libcoopgamma_depth_t,
+				libcoopgamma_context_t* restrict);
 
 
 
