@@ -128,6 +128,13 @@
  */
 #define LIBCOOPGAMMA_CONTEXT_VERSION  0
 
+/**
+ * Number used to identify implementation
+ * version of `libcoopgamma_async_context_t`, if it
+ * is ever modified, this number is increased
+ */
+#define LIBCOOPGAMMA_ASYNC_CONTEXT_VERSION  0
+
 
 
 /**
@@ -595,6 +602,10 @@ typedef struct libcoopgamma_error
 
 /**
  * Library state
+ * 
+ * Use of this structure is not thread-safe,
+ * create one instance per thread that uses
+ * this structure
  */
 typedef struct libcoopgamma_context
 {
@@ -615,7 +626,62 @@ typedef struct libcoopgamma_context
    */
   uint32_t message_id;
   
+  /**
+   * Buffer with the outbound message
+   */
+  char* outbound;
+  
+  /**
+   * The write head for `outbound`
+   */
+  size_t outbound_head;
+  
+  /**
+   * The read head for `outbound`
+   */
+  size_t outbound_tail;
+  
+  /**
+   * The allocation size of `outbound`
+   */
+  size_t outbound_size;
+  
+  /**
+   * Buffer with the inbound message
+   */
+  char* inbound;
+  
+  /**
+   * The write head for `inbound`
+   */
+  size_t inbound_head;
+  
+  /**
+   * The read head for `inbound`
+   */
+  size_t inbound_tail;
+  
+  /**
+   * The allocation size of `inbound`
+   */
+  size_t inbound_size;
+  
 } libcoopgamma_context_t;
+
+
+/**
+ * Information necessary to identify and
+ * parse a response from the server
+ */
+typedef struct libcoopgamma_async_context
+{
+  /**
+   * The value of the 'In response to' header
+   * in the waited message
+   */
+  uint32_t message_id;
+  
+} libcoopgamma_async_context_t;
 
 
 
@@ -1012,6 +1078,49 @@ int libcoopgamma_context_unmarshal(libcoopgamma_context_t* restrict, const void*
 
 
 /**
+ * Initialise a `libcoopgamma_async_context_t`
+ * 
+ * @param   this  The record to initialise
+ * @return        Zero on success, -1 on error
+ */
+int libcoopgamma_async_context_initialise(libcoopgamma_async_context_t* restrict);
+
+/**
+ * Release all resources allocated to  a `libcoopgamma_async_context_t`,
+ * the allocation of the record itself is not freed
+ * 
+ * Always call this function after failed call to `libcoopgamma_async_context_initialise`
+ * or failed call to `libcoopgamma_async_context_unmarshal`
+ * 
+ * @param  this  The record to destroy
+ */
+void libcoopgamma_async_context_destroy(libcoopgamma_async_context_t* restrict);
+
+/**
+ * Marshal a `libcoopgamma_async_context_t` into a buffer
+ * 
+ * @param   this  The record to marshal
+ * @param   buf   The output buffer, `NULL` to only measure
+ *                how large this buffer has to be
+ * @return        The number of marshalled bytes, or if `buf == NULL`,
+ *                how many bytes would be marshalled if `buf != NULL`
+ */
+size_t libcoopgamma_async_context_marshal(const libcoopgamma_async_context_t* restrict, void* restrict);
+
+/**
+ * Unmarshal a `libcoopgamma_async_context_t` from a buffer
+ * 
+ * @param   this  The output paramater for unmarshalled record
+ * @param   buf   The buffer with the marshalled record
+ * @param   n     Output parameter for the number of unmarshalled bytes, undefined on failure
+ * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
+ *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
+ */
+int libcoopgamma_async_context_unmarshal(libcoopgamma_async_context_t* restrict, const void* restrict,
+					 size_t* restrict);
+
+
+/**
  * List all recognised adjustment method
  * 
  * SIGCHLD must not be ignored or blocked
@@ -1087,58 +1196,123 @@ char* libcoopgamma_get_socket_file(const char* restrict, const char* restrict);
 int libcoopgamma_connect(const char* restrict, const char* restrict, libcoopgamma_context_t* restrict);
 
 /**
- * List all available CRTC:s
+ * Send all pending outbound data
+ * 
+ * If this function or another function that sends a request
+ * to the server fails with EINTR, call this function to
+ * complete the transfer. The `async` parameter will always
+ * be in a properly configured state if a function fails
+ * with EINTR.
+ * 
+ * @param   ctx  The state of the library, must be initialised
+ * @return       Zero on success, -1 on error
+ */
+int libcoopgamma_flush(libcoopgamma_context_t* restrict);
+
+/**
+ * List all available CRTC:s, send request part
  * 
  * Cannot be used before connecting to the server
  * 
- * @param   ctx  The state of the library, must be connected
- * @return       A `NULL`-terminated list of names. You should only free
- *               the outer pointer, inner pointers are subpointers of the
- *               outer pointer and cannot be freed. `NULL` on error, in
- *               which case `ctx->error` (rather than `errno`) is read
- *               for information about the error.
- */
-char** libcoopgamma_get_crtcs(libcoopgamma_context_t* restrict);
-
-/**
- * Retrieve information about a CRTC:s gamma ramps
- * 
- * Cannot be used before connecting to the serve
- * 
- * @param   crtc  The name of the CRTC
- * @param   info  Output parameter for the information, must be initialised
- * @param   ctx   The state of the library, must be connected
- * @return        Zero on success, -1 on error, in which case `ctx->error`
- *                (rather than `errno`) is read for information about the error
- */
-int libcoopgamma_get_gamma_info(const char*, libcoopgamma_crtc_info_t* restrict,
-				libcoopgamma_context_t* restrict);
-
-/**
- * Retrieve the current gamma ramp adjustments
- * 
- * Cannot be used before connecting to the serve
- * 
- * @param   query  The query to send
- * @param   table  Output for the response, must be initialised
  * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request, that is needed to
+ *                 identify and parse the response, is stored here
+ * @return         Zero on success, -1 on error
+ */
+int libcoopgamma_get_crtcs_send(libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict);
+
+/**
+ * List all available CRTC:s, receive response part
+ * 
+ * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request
+ * @return         A `NULL`-terminated list of names. You should only free
+ *                 the outer pointer, inner pointers are subpointers of the
+ *                 outer pointer and cannot be freed. `NULL` on error, in
+ *                 which case `ctx->error` (rather than `errno`) is read
+ *                 for information about the error.
+ */
+char** libcoopgamma_get_crtcs_recv(libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict);
+
+/**
+ * Retrieve information about a CRTC:s gamma ramps, send request part
+ * 
+ * Cannot be used before connecting to the server
+ * 
+ * @param   crtc   The name of the CRTC
+ * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request, that is needed to
+ *                 identify and parse the response, is stored here
+ * @return         Zero on success, -1 on error
+ */
+int libcoopgamma_get_gamma_info_send(const char*, libcoopgamma_context_t* restrict,
+				     libcoopgamma_async_context_t* restrict);
+
+/**
+ * Retrieve information about a CRTC:s gamma ramps, receive response part
+ * 
+ * @param   info   Output parameter for the information, must be initialised
+ * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request
  * @return         Zero on success, -1 on error, in which case `ctx->error`
  *                 (rather than `errno`) is read for information about the error
  */
-int libcoopgamma_get_gamma(libcoopgamma_filter_query_t* restrict, libcoopgamma_filter_table_t* restrict,
-			   libcoopgamma_context_t* restrict);
+int libcoopgamma_get_gamma_info_recv(libcoopgamma_crtc_info_t* restrict, libcoopgamma_context_t* restrict,
+				     libcoopgamma_async_context_t* restrict);
 
 /**
- * Apply, update, or remove a gamma ramp adjustment
+ * Retrieve the current gamma ramp adjustments, send request part
+ * 
+ * Cannot be used before connecting to the server
+ * 
+ * @param   query  The query to send
+ * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request, that is needed to
+ *                 identify and parse the response, is stored here
+ * @return         Zero on success, -1 on error
+ */
+int libcoopgamma_get_gamma_send(libcoopgamma_filter_query_t* restrict, libcoopgamma_context_t* restrict,
+				libcoopgamma_async_context_t* restrict);
+
+/**
+ * Retrieve the current gamma ramp adjustments, receive response part
+ * 
+ * @param   table  Output for the response, must be initialised
+ * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request, that is needed to
+ *                 identify and parse the response, is stored here
+ * @return         Zero on success, -1 on error, in which case `ctx->error`
+ *                 (rather than `errno`) is read for information about the error
+ */
+int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict, libcoopgamma_context_t* restrict,
+				libcoopgamma_async_context_t* restrict);
+
+/**
+ * Apply, update, or remove a gamma ramp adjustment, send request part
+ * 
+ * Cannot be used before connecting to the server
  * 
  * @param   filter  The filter to apply, update, or remove, gamma ramp meta-data must match the CRTC's
  * @param   depth   The datatype for the stops in the gamma ramps, must match the CRTC's
  * @param   ctx     The state of the library, must be connected
- * @return          Zero on success, -1 on error, in which case `ctx->error`
- *                  (rather than `errno`) is read for information about the error
+ * @param   async   Information about the request, that is needed to
+ *                  identify and parse the response, is stored here
+ * @return          Zero on success, -1 on error
  */
-int libcoopgamma_set_gamma(libcoopgamma_filter_t* restrict, libcoopgamma_depth_t,
-			   libcoopgamma_context_t* restrict);
+int libcoopgamma_set_gamma_send(libcoopgamma_filter_t* restrict, libcoopgamma_depth_t,
+				libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict);
+
+
+/**
+ * Apply, update, or remove a gamma ramp adjustment, receive response part
+ * 
+ * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request, that is needed to
+ *                 identify and parse the response, is stored here
+ * @return         Zero on success, -1 on error, in which case `ctx->error`
+ *                 (rather than `errno`) is read for information about the error
+ */
+int libcoopgamma_set_gamma_recv(libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict);
 
 
 

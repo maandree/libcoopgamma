@@ -109,11 +109,12 @@ char* argv0 __attribute__((weak)) = "libcoopgamma";
 
 
 #define copy_errno(ctx)				\
-  ((ctx)->error.number = (uint64_t)errno,	\
-   (ctx)->error.custom = 0,			\
-   (ctx)->error.server_side = 0,		\
-   free((ctx)->error.description),		\
-   (ctx)->error.description = NULL)
+  ((errno == 0) ? NULL :			\
+   ((ctx)->error.number = (uint64_t)errno,	\
+    (ctx)->error.custom = 0,			\
+    (ctx)->error.server_side = 0,		\
+    free((ctx)->error.description),		\
+    (ctx)->error.description = NULL))
 
 
 
@@ -755,6 +756,14 @@ int libcoopgamma_context_initialise(libcoopgamma_context_t* restrict this)
   this->fd = -1;
   libcoopgamma_error_initialise(&(this->error));
   this->message_id = 0;
+  this->outbound = NULL;
+  this->outbound_head = 0;
+  this->outbound_tail = 0;
+  this->outbound_size = 0;
+  this->inbound = NULL;
+  this->inbound_head = 0;
+  this->inbound_tail = 0;
+  this->inbound_size = 0;
   return 0;
 }
 
@@ -778,6 +787,8 @@ void libcoopgamma_context_destroy(libcoopgamma_context_t* restrict this, int dis
     }
   this->fd = -1;
   libcoopgamma_error_destroy(&(this->error));
+  free(this->outbound), this->outbound = NULL;
+  free(this->inbound), this->inbound = NULL;
 }
 
 
@@ -797,6 +808,10 @@ size_t libcoopgamma_context_marshal(const libcoopgamma_context_t* restrict this,
   marshal_prim(this->fd, int);
   off += libcoopgamma_error_marshal(&(this->error), SUBBUF);
   marshal_prim(this->message_id, uint32_t);
+  marshal_prim(this->outbound_head - this->outbound_tail, size_t);
+  marshal_buffer(this->outbound + this->outbound_head, this->outbound_head - this->outbound_tail);
+  marshal_prim(this->inbound_head - this->inbound_tail, size_t);
+  marshal_buffer(this->inbound + this->inbound_head, this->inbound_head - this->inbound_tail);
   MARSHAL_EPILOGUE;
 }
 
@@ -823,6 +838,78 @@ int libcoopgamma_context_unmarshal(libcoopgamma_context_t* restrict this,
   if (r != LIBCOOPGAMMA_SUCCESS)
     return r;
   off += n;
+  unmarshal_prim(this->message_id, uint32_t);
+  unmarshal_prim(this->inbound_head, size_t);
+  this->outbound_size = this->outbound_head;
+  unmarshal_buffer(this->outbound, this->outbound_head);
+  this->inbound_size = this->inbound_head;
+  unmarshal_buffer(this->inbound, this->inbound_head);
+  UNMARSHAL_EPILOGUE;
+}
+
+
+
+/**
+ * Initialise a `libcoopgamma_async_context_t`
+ * 
+ * @param   this  The record to initialise
+ * @return        Zero on success, -1 on error
+ */
+int libcoopgamma_async_context_initialise(libcoopgamma_async_context_t* restrict this)
+{
+  this->message_id = 0;
+  return 0;
+}
+
+
+/**
+ * Release all resources allocated to  a `libcoopgamma_async_context_t`,
+ * the allocation of the record itself is not freed
+ * 
+ * Always call this function after failed call to `libcoopgamma_async_context_initialise`
+ * or failed call to `libcoopgamma_async_context_unmarshal`
+ * 
+ * @param  this  The record to destroy
+ */
+void libcoopgamma_async_context_destroy(libcoopgamma_async_context_t* restrict this)
+{
+  (void) this;
+}
+
+
+/**
+ * Marshal a `libcoopgamma_async_context_t` into a buffer
+ * 
+ * @param   this  The record to marshal
+ * @param   vbuf  The output buffer, `NULL` to only measure
+ *                how large this buffer has to be
+ * @return        The number of marshalled bytes, or if `buf == NULL`,
+ *                how many bytes would be marshalled if `buf != NULL`
+ */
+size_t libcoopgamma_async_context_marshal(const libcoopgamma_async_context_t* restrict this,
+					  void* restrict vbuf)
+{
+  MARSHAL_PROLOGUE;
+  marshal_version(LIBCOOPGAMMA_ASYNC_CONTEXT_VERSION);
+  marshal_prim(this->message_id, uint32_t);
+  MARSHAL_EPILOGUE;
+}
+
+
+/**
+ * Unmarshal a `libcoopgamma_async_context_t` from a buffer
+ * 
+ * @param   this  The output paramater for unmarshalled record
+ * @param   vbuf  The buffer with the marshalled record
+ * @param   np    Output parameter for the number of unmarshalled bytes, undefined on failure
+ * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
+ *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
+ */
+int libcoopgamma_async_context_unmarshal(libcoopgamma_async_context_t* restrict this,
+					 const void* restrict vbuf, size_t* restrict np)
+{
+  UNMARSHAL_PROLOGUE;
+  unmarshal_version(LIBCOOPGAMMA_ASYNC_CONTEXT_VERSION);
   unmarshal_prim(this->message_id, uint32_t);
   UNMARSHAL_EPILOGUE;
 }
@@ -1182,6 +1269,44 @@ int libcoopgamma_connect(const char* restrict method, const char* restrict site,
 
 
 /**
+ * Send all pending outbound data
+ * 
+ * If this function or another function that sends a request
+ * to the server fails with EINTR, call this function to
+ * complete the transfer. The `async` parameter will always
+ * be in a properly configured state if a function fails
+ * with EINTR.
+ * 
+ * @param   ctx  The state of the library, must be initialised
+ * @return       Zero on success, -1 on error
+ */
+int libcoopgamma_flush(libcoopgamma_context_t* restrict ctx)
+{
+  ssize_t sent;
+  size_t chunksize = ctx->outbound_head - ctx->outbound_tail;
+  size_t sendsize;
+  
+  while (ctx->outbound_tail < ctx->outbound_head)
+    {
+      sendsize = ctx->outbound_head - ctx->outbound_tail;
+      sendsize = sendsize < chunksize ? sendsize : chunksize;
+      sent = send(ctx->fd, ctx->outbound + ctx->outbound_tail, sendsize, 0);
+      if (sent < 0)
+	{
+	  if (errno != EMSGSIZE)
+	    return -1;
+	  if ((chunksize >>= 1) == 0)
+	    return -1;
+	  continue;
+	}
+      ctx->outbound_tail += (size_t)sent;
+    }
+  
+  return 0;
+}
+
+
+/**
  * Send a message to the server and wait for response
  * 
  * @param  resp:char**                  Output parameter for the response,
@@ -1192,26 +1317,24 @@ int libcoopgamma_connect(const char* restrict method, const char* restrict site,
  * @param  format:string-literal        Message formatting string
  * @param  ...                          Message formatting arguments
  * 
- * On and only on error, `*(resp)` is set to `NULL`
+ * On error, the macro goes to `fail`.
  */
-#define communicate(respp, ctx, payload, payload_size, format, ...)		\
-  do										\
-    {										\
-      ssize_t n__;								\
-      char* msg__;								\
-      snprintf(NULL, 0, format "%zn", __VA_ARGS__, &n__);			\
-      msg__ = malloc((size_t)n__ + (payload_size));				\
-      if (msg__ == NULL)							\
-	{									\
-	  copy_errno(ctx);							\
-	  *(respp) = NULL;							\
-	  break;								\
-	}									\
-      sprintf(msg__, format, __VA_ARGS__);					\
-      if ((payload) != NULL)							\
-	memcpy(msg__ + n__, (payload), (payload_size));				\
-      *(respp) = (communicate)((ctx), msg__, (size_t)n__ + (payload_size));	\
-    }										\
+#define SEND_MESSAGE(ctx, payload, payload_size, format, ...)		\
+  do									\
+    {									\
+      ssize_t n__;							\
+      char* msg__;							\
+      snprintf(NULL, 0, format "%zn", __VA_ARGS__, &n__);		\
+      msg__ = malloc((size_t)n__ + (payload_size));			\
+      if (msg__ == NULL)						\
+	goto fail;							\
+      sprintf(msg__, format, __VA_ARGS__);				\
+      if ((payload) != NULL)						\
+	memcpy(msg__ + n__, (payload), (payload_size));			\
+      if (send_message((ctx), msg__, (size_t)n__ + (payload_size)) < 0)	\
+	goto fail;							\
+      free(msg__);							\
+    }									\
   while (0)
 
 
@@ -1221,109 +1344,181 @@ int libcoopgamma_connect(const char* restrict method, const char* restrict site,
  * @param   ctx  The state of the library
  * @param   msg  The message to send
  * @param   n    The length of `msg`
- * @return       NUL-terminated response, `NULL` on error
+ * @return       Zero on success, -1 on error
  */
-static char* (communicate)(libcoopgamma_context_t* restrict ctx, char* msg, size_t n)
+static int send_message(libcoopgamma_context_t* restrict ctx, char* msg, size_t n)
+{
+  if (ctx->outbound_head == ctx->outbound_tail)
+    {
+      free(ctx->outbound);
+      ctx->outbound = msg;
+      ctx->outbound_tail = 0;
+      ctx->outbound_head = n;
+      ctx->outbound_size = n;
+    }
+  else
+    {
+      if (ctx->outbound_head + n > ctx->outbound_size)
+	{
+	  memmove(ctx->outbound, ctx->outbound + ctx->outbound_tail, ctx->outbound_head -= ctx->outbound_tail);
+	  ctx->outbound_tail = 0;
+	}
+      if (ctx->outbound_head + n > ctx->outbound_size)
+	{
+	  void* new = realloc(ctx->outbound, ctx->outbound_head + n);
+	  if (new == NULL)
+	    {
+	      int saved_errno = errno;
+	      free(msg);
+	      errno = saved_errno;
+	      return -1;
+	    }
+	  ctx->outbound = new;
+	  ctx->outbound_size = ctx->outbound_head + n;
+	}
+      memcpy(ctx->outbound + ctx->outbound_head, msg, n);
+      ctx->outbound_head += n;
+      ctx->message_id += 1;
+      free(msg);
+    }
+  return libcoopgamma_flush(ctx);
+}
+
+
+static char* next_line(libcoopgamma_context_t* restrict ctx)
 {
 }
 
 
 /**
- * List all available CRTC:s
+ * List all available CRTC:s, send request part
  * 
  * Cannot be used before connecting to the server
  * 
- * @param   ctx  The state of the library, must be connected
- * @return       A `NULL`-terminated list of names. You should only free
- *               the outer pointer, inner pointers are subpointers of the
- *               outer pointer and cannot be freed. `NULL` on error, in
- *               which case `ctx->error` (rather than `errno`) is read
- *               for information about the error.
+ * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request, that is needed to
+ *                 identify and parse the response, is stored here
+ * @return         Zero on success, -1 on error
  */
-char** libcoopgamma_get_crtcs(libcoopgamma_context_t* restrict ctx)
+int libcoopgamma_get_crtcs_send(libcoopgamma_context_t* restrict ctx,
+				libcoopgamma_async_context_t* restrict async)
 {
-  char* resp;
+  async->message_id = ctx->message_id;
+  SEND_MESSAGE(ctx, NULL, 0,
+	       "Command: enumerate-crtcs\n"
+	       "Message ID: %" PRIu32 "\n"
+	       "\n",
+	       ctx->message_id);
   
-  communicate(&resp, ctx, NULL, 0,
-	      "Command: enumerate-crtcs\n"
-	      "Message ID: %" PRIu32 "\n"
-	      "\n",
-	      ctx->message_id);
+  return 0;
+ fail:
+  copy_errno(ctx);
+  return -1;
 }
 
 
 /**
- * Retrieve information about a CRTC:s gamma ramps
+ * List all available CRTC:s, receive response part
  * 
- * Cannot be used before connecting to the serve
- * 
- * @param   crtc  The name of the CRTC
- * @param   info  Output parameter for the information, must be initialised
- * @param   ctx   The state of the library, must be connected
- * @return        Zero on success, -1 on error, in which case `ctx->error`
- *                (rather than `errno`) is read for information about the error
+ * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request
+ * @return         A `NULL`-terminated list of names. You should only free
+ *                 the outer pointer, inner pointers are subpointers of the
+ *                 outer pointer and cannot be freed. `NULL` on error, in
+ *                 which case `ctx->error` (rather than `errno`) is read
+ *                 for information about the error.
  */
-int libcoopgamma_get_gamma_info(const char* crtc, libcoopgamma_crtc_info_t* restrict info,
-				libcoopgamma_context_t* restrict ctx)
+char** libcoopgamma_get_crtcs_recv(libcoopgamma_context_t* restrict ctx,
+				   libcoopgamma_async_context_t* restrict async)
 {
-  char* resp;
-  
+}
+
+
+/**
+ * Retrieve information about a CRTC:s gamma ramps, send request part
+ * 
+ * Cannot be used before connecting to the server
+ * 
+ * @param   crtc   The name of the CRTC
+ * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request, that is needed to
+ *                 identify and parse the response, is stored here
+ * @return         Zero on success, -1 on error
+ */
+int libcoopgamma_get_gamma_info_send(const char* crtc, libcoopgamma_context_t* restrict ctx,
+				     libcoopgamma_async_context_t* restrict async)
+{
   if ((crtc == NULL) || strchr(crtc, '\n'))
     {
       errno = EINVAL;
       goto fail;
     }
   
-  communicate(&resp, ctx, NULL, 0,
-	      "Command: get-gamma-info\n"
-	      "Message ID: %" PRIu32 "\n"
-	      "CRTC: %s\n"
-	      "\n",
-	      ctx->message_id, crtc);
-  if (resp == NULL)
-    return -1;
+  async->message_id = ctx->message_id;
+  SEND_MESSAGE(ctx, NULL, 0,
+	       "Command: get-gamma-info\n"
+	       "Message ID: %" PRIu32 "\n"
+	       "CRTC: %s\n"
+	       "\n",
+	       ctx->message_id, crtc);
   
+  return 0;
  fail:
   copy_errno(ctx);
-  return -1;
+  return 0;
 }
 
 
 /**
- * Retrieve the current gamma ramp adjustments
+ * Retrieve information about a CRTC:s gamma ramps, receive response part
  * 
- * Cannot be used before connecting to the serve
- * 
- * @param   query  The query to send
- * @param   table  Output for the response, must be initialised
+ * @param   info   Output parameter for the information, must be initialised
  * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request
  * @return         Zero on success, -1 on error, in which case `ctx->error`
  *                 (rather than `errno`) is read for information about the error
  */
-int libcoopgamma_get_gamma(libcoopgamma_filter_query_t* restrict query,
-			   libcoopgamma_filter_table_t* restrict table, libcoopgamma_context_t* restrict ctx)
+int libcoopgamma_get_gamma_info_recv(libcoopgamma_crtc_info_t* restrict info,
+				     libcoopgamma_context_t* restrict ctx,
+				     libcoopgamma_async_context_t* restrict async)
 {
-  char* resp;
-  
+}
+
+
+/**
+ * Retrieve the current gamma ramp adjustments, send request part
+ * 
+ * Cannot be used before connecting to the server
+ * 
+ * @param   query  The query to send
+ * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request, that is needed to
+ *                 identify and parse the response, is stored here
+ * @return         Zero on success, -1 on error
+ */
+int libcoopgamma_get_gamma_send(libcoopgamma_filter_query_t* restrict query,
+				libcoopgamma_context_t* restrict ctx,
+				libcoopgamma_async_context_t* restrict async)
+{
   if ((query == NULL) || (query->crtc == NULL) || strchr(query->crtc, '\n'))
     {
       errno = EINVAL;
       goto fail;
     }
   
-  communicate(&resp, ctx, NULL, 0,
-	      "Command: get-gamma\n"
-	      "Message ID: %" PRIu32 "\n"
-	      "CRTC: %s\n"
-	      "Coalesce: %s\n"
-	      "High priority: %" PRIi64 "\n"
-	      "Low priority: %" PRIi64 "\n"
-	      "\n",
-	      ctx->message_id, query->crtc, query->coalesce ? "yes" : "no",
-	      query->high_priority, query->low_priority);
-  if (resp == NULL)
-    return -1;
+  async->message_id = ctx->message_id;
+  SEND_MESSAGE(ctx, NULL, 0,
+	       "Command: get-gamma\n"
+	       "Message ID: %" PRIu32 "\n"
+	       "CRTC: %s\n"
+	       "Coalesce: %s\n"
+	       "High priority: %" PRIi64 "\n"
+	       "Low priority: %" PRIi64 "\n"
+	       "\n",
+	       ctx->message_id, query->crtc, query->coalesce ? "yes" : "no",
+	       query->high_priority, query->low_priority);
   
+  return 0;
  fail:
   copy_errno(ctx);
   return -1;
@@ -1331,23 +1526,43 @@ int libcoopgamma_get_gamma(libcoopgamma_filter_query_t* restrict query,
 
 
 /**
- * Apply, update, or remove a gamma ramp adjustment
+ * Retrieve the current gamma ramp adjustments, receive response part
+ * 
+ * @param   table  Output for the response, must be initialised
+ * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request, that is needed to
+ *                 identify and parse the response, is stored here
+ * @return         Zero on success, -1 on error, in which case `ctx->error`
+ *                 (rather than `errno`) is read for information about the error
+ */
+int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict table,
+				libcoopgamma_context_t* restrict ctx,
+				libcoopgamma_async_context_t* restrict async)
+{
+}
+
+
+/**
+ * Apply, update, or remove a gamma ramp adjustment, send request part
+ * 
+ * Cannot be used before connecting to the server
  * 
  * @param   filter  The filter to apply, update, or remove, gamma ramp meta-data must match the CRTC's
  * @param   depth   The datatype for the stops in the gamma ramps, must match the CRTC's
  * @param   ctx     The state of the library, must be connected
- * @return          Zero on success, -1 on error, in which case `ctx->error`
- *                  (rather than `errno`) is read for information about the error
+ * @param   async   Information about the request, that is needed to
+ *                  identify and parse the response, is stored here
+ * @return          Zero on success, -1 on error
  */
-int libcoopgamma_set_gamma(libcoopgamma_filter_t* restrict filter, libcoopgamma_depth_t depth,
-			   libcoopgamma_context_t* restrict ctx)
+int libcoopgamma_set_gamma_send(libcoopgamma_filter_t* restrict filter, libcoopgamma_depth_t depth,
+				libcoopgamma_context_t* restrict ctx,
+				libcoopgamma_async_context_t* restrict async)
 {
   const void* payload = NULL;
   const char* lifespan;
   char priority[sizeof("Priority: \n") + 3 * sizeof(int64_t)] = {'\0'};
   char length  [sizeof("Length: \n")   + 3 * sizeof(size_t) ] = {'\0'};
   size_t payload_size = 0, stopwidth = 0;
-  char* resp;
   
   if ((filter == NULL) || (filter->crtc == NULL) || strchr(filter->crtc, '\n') ||
       (filter->class == NULL) || strchr(filter->class, '\n'))
@@ -1391,22 +1606,37 @@ int libcoopgamma_set_gamma(libcoopgamma_filter_t* restrict filter, libcoopgamma_
       sprintf(length, "Length: %zu\n", payload_size);
     }
   
-  communicate(&resp, ctx, payload, payload_size,
-	      "Command: set-gamma\n"
-	      "Message ID: %" PRIu32 "\n"
-	      "CRTC: %s\n"
-	      "Class: %s\n"
-	      "Lifespan: %s\n"
-	      "%s"
-	      "%s"
-	      "\n",
-	      ctx->message_id, filter->crtc, filter->class, lifespan,
-	      priority, length);
-  if (resp == NULL)
-    return -1;
+  async->message_id = ctx->message_id;
+  SEND_MESSAGE(ctx, payload, payload_size,
+	       "Command: set-gamma\n"
+	       "Message ID: %" PRIu32 "\n"
+	       "CRTC: %s\n"
+	       "Class: %s\n"
+	       "Lifespan: %s\n"
+	       "%s"
+	       "%s"
+	       "\n",
+	       ctx->message_id, filter->crtc, filter->class, lifespan,
+	       priority, length);
   
+  return 0;
  fail:
   copy_errno(ctx);
   return -1;
+}
+
+
+/**
+ * Apply, update, or remove a gamma ramp adjustment, receive response part
+ * 
+ * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request, that is needed to
+ *                 identify and parse the response, is stored here
+ * @return         Zero on success, -1 on error, in which case `ctx->error`
+ *                 (rather than `errno`) is read for information about the error
+ */
+int libcoopgamma_set_gamma_recv(libcoopgamma_context_t* restrict ctx,
+				libcoopgamma_async_context_t* restrict async)
+{
 }
 
