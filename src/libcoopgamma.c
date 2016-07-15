@@ -18,6 +18,7 @@
 #include "libcoopgamma.h"
 
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <sys/wait.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -1039,7 +1040,6 @@ static char* libcoopgamma_query(const char* restrict method, const char* restric
   
   if (method != NULL)  args[i++] = "-m", args[i++] = method;
   if (site   != NULL)  args[i++] = "-s", args[i++] = site;
-  
   args[i] = NULL;
   
   if (pipe(pipe_rw) < 0)
@@ -1296,7 +1296,72 @@ char* libcoopgamma_get_socket_file(const char* restrict method, const char* rest
 int libcoopgamma_connect(const char* restrict method, const char* restrict site,
 			 libcoopgamma_context_t* restrict ctx)
 {
-  /* TODO */
+  const char* (args[6]) = {"coopgammad"};
+  struct sockaddr_un address;
+  char* path;
+  int saved_errno;
+  int tries = 0, status;
+  pid_t pid;
+  size_t i = 1;
+  
+  if (method != NULL)  args[i++] = "-m", args[i++] = method;
+  if (site   != NULL)  args[i++] = "-s", args[i++] = site;
+  args[i] = NULL;
+  
+  path = libcoopgamma_get_socket_file(method, site);
+  if (path == NULL)
+    return -1;
+  if (strlen(path) <= sizeof(address.sun_path))
+    {
+      free(path);
+      errno = ENAMETOOLONG;
+      return -1;
+    }
+  
+  address.sun_family = AF_UNIX;
+  strcpy(address.sun_path, path);
+  free(path);
+  if ((ctx->fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
+    return -1;
+
+ retry:
+  if (connect(ctx->fd, (struct sockaddr*)(&address), sizeof(address)) < 0)
+    {
+      if (((errno == ECONNREFUSED) || (errno == ENOENT) || (errno == ENOTDIR)) && !tries++)
+	{
+	  switch ((pid = fork()))
+	    {
+	    case -1:
+	      goto fail;
+	    case 0:
+	      /* Child */
+	      close(ctx->fd);
+	      execvp("coopgammad", (char* const*)(args));
+	      perror(NAME_OF_THE_PROCESS);
+	      exit(1);
+	      break;
+	    default:
+	      /* Parent */
+	      if (waitpid(pid, &status, 0) < 0)
+		goto fail;
+	      if (status)
+		{
+		  errno = 0;
+		  goto fail;
+		}
+	      break;
+	    }
+	  goto retry;
+	}
+      goto fail;
+    }
+  
+  return 0;
+ fail:
+  saved_errno = errno;
+  close(ctx->fd), ctx->fd = -1;
+  errno = saved_errno;
+  return -1;
 }
 
 
