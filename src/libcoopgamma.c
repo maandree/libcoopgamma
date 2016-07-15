@@ -1390,6 +1390,28 @@ static char* next_line(libcoopgamma_context_t* restrict ctx)
 }
 
 
+static char* next_payload(libcoopgamma_context_t* restrict ctx, size_t* n)
+{
+}
+
+
+/**
+ * Check whether the server sent an error, if so copy it to `ctx`
+ * 
+ * This function will also reports EBADMSG if the message ID
+ * that the message is a response to does not match the request
+ * information, or if it is missing
+ * 
+ * @param   ctx    The state of the library, must be connected
+ * @param   async  Information about the request
+ * @return         1 if the server sent an error, 0 on success, -1 on failure.
+ *                 Information about failure is copied `ctx`.
+ */
+static int check_error(libcoopgamma_context_t* restrict ctx, libcoopgamma_async_context_t* restrict async)
+{
+}
+
+
 /**
  * List all available CRTC:s, send request part
  * 
@@ -1431,6 +1453,62 @@ int libcoopgamma_get_crtcs_send(libcoopgamma_context_t* restrict ctx,
 char** libcoopgamma_get_crtcs_recv(libcoopgamma_context_t* restrict ctx,
 				   libcoopgamma_async_context_t* restrict async)
 {
+  char* line;
+  char* payload;
+  char* end;
+  int command_ok = 0;
+  size_t i, n, lines, len, length;
+  char** rc;
+  
+  if (check_error(ctx, async))
+    return NULL;
+  
+  for (;;)
+    {
+      line = next_line(ctx);
+      if (!*line)
+	break;
+      else if (!strcmp(line, "Command: crtc-enumeration"))
+	command_ok = 1;
+    }
+  
+  payload = next_payload(ctx, &n);
+  
+  if (!command_ok || ((n > 0) && (payload[n - 1] != '\n')))
+    {
+      errno = EBADMSG;
+      copy_errno(ctx);
+      return NULL;
+    }
+  
+  line = payload;
+  end = payload + n;
+  lines = length = 0;
+  while (line != end)
+    {
+      lines += 1;
+      length += len = (size_t)(strchr(line, '\n') + 1 - line);
+      line += len;
+      line[-1] = '\0';
+    }
+  
+  rc = malloc((lines + 1) * sizeof(char*) + length);
+  if (rc == NULL)
+    {
+      copy_errno(ctx);
+      return NULL;
+    }
+  
+  line = ((char*)rc) + (lines + 1) * sizeof(char*);
+  memcpy(line, payload, length);
+  rc[lines] = NULL;
+  for (i = 0; i < lines; i++)
+    {
+      rc[i] = line;
+      line = strchr(line, '\0') + 1;
+    }
+  
+  return rc;
 }
 
 
@@ -1482,6 +1560,91 @@ int libcoopgamma_get_gamma_info_recv(libcoopgamma_crtc_info_t* restrict info,
 				     libcoopgamma_context_t* restrict ctx,
 				     libcoopgamma_async_context_t* restrict async)
 {
+  char temp[3 * sizeof(size_t) + 1];
+  char* line;
+  char* value;
+  size_t _n;
+  int have_cooperative = 0;
+  int have_depth = 0;
+  int have_red_size = 0;
+  int have_green_size = 0;
+  int have_blue_size = 0;
+  int have_gamma_support = 0;
+  int bad = 0, r = 0, g = 0;
+  
+  if (check_error(ctx, async))
+    return -1;
+  
+  info->cooperative = 0; /* Should be in the response, but ... */
+  
+  for (;;)
+    {
+      line = next_line(ctx);
+      value = strchr(line, ':') + 2;
+      if (!*line)
+	break;
+      else if (strstr(line, "Cooperative: ") == line)
+	{
+	  have_cooperative = 1 + !!have_cooperative;
+	  if      (!strcmp(value, "yes"))  info->cooperative = 1;
+	  else if (!strcmp(value, "no"))   info->cooperative = 0;
+	  else
+	    bad = 1;
+	}
+      else if (strstr(line, "Depth: ") == line)
+	{
+	  have_depth = 1 + !!have_depth;
+	  if      (!strcmp(value, "8"))   info->depth = LIBCOOPGAMMA_UINT8;
+	  else if (!strcmp(value, "16"))  info->depth = LIBCOOPGAMMA_UINT16;
+	  else if (!strcmp(value, "32"))  info->depth = LIBCOOPGAMMA_UINT32;
+	  else if (!strcmp(value, "64"))  info->depth = LIBCOOPGAMMA_UINT64;
+	  else if (!strcmp(value, "f"))   info->depth = LIBCOOPGAMMA_FLOAT;
+	  else if (!strcmp(value, "d"))   info->depth = LIBCOOPGAMMA_DOUBLE;
+	  else
+	    bad = 1;
+	}
+      else if (strstr(line, "Gamma support: ") == line)
+	{
+	  have_gamma_support = 1 + !!have_gamma_support;
+	  if      (!strcmp(value, "yes"))    info->supported = LIBCOOPGAMMA_YES;
+	  else if (!strcmp(value, "no"))     info->supported = LIBCOOPGAMMA_NO;
+	  else if (!strcmp(value, "maybe"))  info->supported = LIBCOOPGAMMA_MAYBE;
+	  else
+	    bad = 1;
+	}
+      else if (((r = (strstr(line, "Red size: ")   == line))) ||
+	       ((g = (strstr(line, "Green size: ") == line))) ||
+	             (strstr(line, "Blue size: ")  == line))
+	{
+	  size_t* out;
+	  if (r)       have_red_size   = 1 + !!have_red_size,   out = &(info->red_size);
+	  else if (g)  have_green_size = 1 + !!have_green_size, out = &(info->green_size);
+	  else         have_blue_size  = 1 + !!have_blue_size,  out = &(info->blue_size);
+	  *out = (size_t)atol(value);
+	  sprintf(temp, "%zu", *out);
+	  if (strcmp(value, temp))
+	    bad = 1;
+	}
+    }
+  
+  (void) next_payload(ctx, &_n);
+  
+  if (bad || (have_gamma_support != 1))
+    {
+      errno = EBADMSG;
+      copy_errno(ctx);
+      return -1;
+    }
+  if (info->supported != LIBCOOPGAMMA_NO)
+    if ((have_cooperative > 1) || (have_depth != 1) || (have_gamma_support != 1) ||
+	(have_red_size != 1) || (have_green_size != 1) || (have_blue_size != 1))
+      {
+	errno = EBADMSG;
+	copy_errno(ctx);
+	return -1;
+      }
+  
+  return 0;
 }
 
 
