@@ -1088,7 +1088,7 @@ int libcoopgamma_connect(const char* restrict, const char* restrict, libcoopgamm
  *               which case `ctx->error` (rather than `errno`) is read
  *               for information about the error.
  */
-char** libcoopgamma_enumerate_crtcs(libcoopgamma_context_t* restrict);
+char** libcoopgamma_get_crtcs(libcoopgamma_context_t* restrict);
 
 /**
  * Retrieve information about a CRTC:s gamma ramps

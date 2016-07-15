@@ -1228,7 +1228,7 @@ static char* (communicate)(libcoopgamma_context_t* restrict ctx, char* msg, size
  *               which case `ctx->error` (rather than `errno`) is read
  *               for information about the error.
  */
-char** libcoopgamma_enumerate_crtcs(libcoopgamma_context_t* restrict ctx)
+char** libcoopgamma_get_crtcs(libcoopgamma_context_t* restrict ctx)
 {
   char* resp;
   
