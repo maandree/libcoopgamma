@@ -1014,6 +1014,8 @@ int libcoopgamma_context_unmarshal(libcoopgamma_context_t* restrict, const void*
 /**
  * List all recognised adjustment method
  * 
+ * SIGCHLD must not be ignored or blocked
+ * 
  * @return  A `NULL`-terminated list of names. You should only free
  *          the outer pointer, inner pointers are subpointers of the
  *          outer pointer and cannot be freed. `NULL` on error.
@@ -1022,6 +1024,8 @@ char** libcoopgamma_get_methods(void);
 
 /**
  * Get the adjustment method and site
+ * 
+ * SIGCHLD must not be ignored or blocked
  * 
  * @param   method   The adjustment method, `NULL` for automatic
  * @param   site     The site, `NULL` for automatic
@@ -1041,6 +1045,8 @@ int libcoopgamma_get_method_and_site(const char* restrict, const char* restrict,
 /**
  * Get the PID file of the coopgamma server
  * 
+ * SIGCHLD must not be ignored or blocked
+ * 
  * @param   method   The adjustment method, `NULL` for automatic
  * @param   site     The site, `NULL` for automatic
  * @return           The pathname of the server's PID file, `NULL` on error
@@ -1051,6 +1057,8 @@ char* libcoopgamma_get_pid_file(const char* restrict, const char* restrict);
 
 /**
  * Get the socket file of the coopgamma server
+ * 
+ * SIGCHLD must not be ignored or blocked
  * 
  * @param   method   The adjustment method, `NULL` for automatic
  * @param   site     The site, `NULL` for automatic
@@ -1067,6 +1075,8 @@ char* libcoopgamma_get_socket_file(const char* restrict, const char* restrict);
  * Connect to a coopgamma server, and start it if necessary
  * 
  * Use `libcoopgamma_context_destroy` to disconnect
+ * 
+ * SIGCHLD must not be ignored or blocked
  * 
  * @param   method  The adjustment method, `NULL` for automatic
  * @param   site    The site, `NULL` for automatic
