@@ -1473,6 +1473,9 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
 		return 0;
 	      }
 	  *selected = 0;
+	  ctx->bad_message = 0;
+	  ctx->have_all_headers = 0;
+	  ctx->length = 0;
 	  ctx->inbound_tail = ctx->curline;
 	  return -2;
 	}
