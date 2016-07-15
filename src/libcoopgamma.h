@@ -666,6 +666,12 @@ typedef struct libcoopgamma_context
    */
   size_t inbound_size;
   
+  /**
+   * The value of 'Length' header in
+   * the inbound message
+   */
+  size_t length;
+  
 } libcoopgamma_context_t;
 
 
@@ -1285,8 +1291,7 @@ int libcoopgamma_get_gamma_send(libcoopgamma_filter_query_t* restrict, libcoopga
  * 
  * @param   table  Output for the response, must be initialised
  * @param   ctx    The state of the library, must be connected
- * @param   async  Information about the request, that is needed to
- *                 identify and parse the response, is stored here
+ * @param   async  Information about the request
  * @return         Zero on success, -1 on error, in which case `ctx->error`
  *                 (rather than `errno`) is read for information about the error
  */
@@ -1313,8 +1318,7 @@ int libcoopgamma_set_gamma_send(libcoopgamma_filter_t* restrict, libcoopgamma_de
  * Apply, update, or remove a gamma ramp adjustment, receive response part
  * 
  * @param   ctx    The state of the library, must be connected
- * @param   async  Information about the request, that is needed to
- *                 identify and parse the response, is stored here
+ * @param   async  Information about the request
  * @return         Zero on success, -1 on error, in which case `ctx->error`
  *                 (rather than `errno`) is read for information about the error
  */

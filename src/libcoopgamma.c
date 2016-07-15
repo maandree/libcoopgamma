@@ -764,6 +764,7 @@ int libcoopgamma_context_initialise(libcoopgamma_context_t* restrict this)
   this->inbound_head = 0;
   this->inbound_tail = 0;
   this->inbound_size = 0;
+  this->length = 0;
   return 0;
 }
 
@@ -812,6 +813,7 @@ size_t libcoopgamma_context_marshal(const libcoopgamma_context_t* restrict this,
   marshal_buffer(this->outbound + this->outbound_head, this->outbound_head - this->outbound_tail);
   marshal_prim(this->inbound_head - this->inbound_tail, size_t);
   marshal_buffer(this->inbound + this->inbound_head, this->inbound_head - this->inbound_tail);
+  marshal_prim(this->length, size_t);
   MARSHAL_EPILOGUE;
 }
 
@@ -844,6 +846,7 @@ int libcoopgamma_context_unmarshal(libcoopgamma_context_t* restrict this,
   unmarshal_buffer(this->outbound, this->outbound_head);
   this->inbound_size = this->inbound_head;
   unmarshal_buffer(this->inbound, this->inbound_head);
+  unmarshal_prim(this->length, size_t);
   UNMARSHAL_EPILOGUE;
 }
 
@@ -1388,13 +1391,47 @@ static int send_message(libcoopgamma_context_t* restrict ctx, char* msg, size_t 
 }
 
 
-static char* next_line(libcoopgamma_context_t* restrict ctx)
+/**
+ * Get the next header of the inbound message
+ * 
+ * All headers must be read before the payload is read
+ * 
+ * @param   ctx  The state of the library, must be connected
+ * @return       The next header line, can never be `NULL`,
+ *               the empty string marks the end of the headers.
+ *               This memory segment must not be freed.
+ */
+static char* next_header(libcoopgamma_context_t* restrict ctx)
 {
+  char* rc = ctx->inbound + ctx->inbound_tail;
+  ctx->inbound_tail += strlen(ctx->inbound) + 1;
+  return rc;
 }
 
 
+/**
+ * Get the payload of the inbound message
+ * 
+ * Calling this function marks that the inbound message
+ * has been fully ready. You must call this function
+ * even if you do not expect a payload
+ * 
+ * @param   ctx  The state of the library, must be connected
+ * @param   n    Output parameter for the size of the payload
+ * @return       The payload (not NUL-terminated), `NULL` if
+ *               there is no payload. Failure is impossible.
+ *               This memory segment must not be freed.
+ */
 static char* next_payload(libcoopgamma_context_t* restrict ctx, size_t* n)
 {
+  if ((*n = ctx->length))
+    {
+      char* rc = ctx->inbound + ctx->inbound_tail;
+      ctx->inbound_tail += *n;
+      return rc;
+    }
+  else
+    return NULL;
 }
 
 
@@ -1407,11 +1444,81 @@ static char* next_payload(libcoopgamma_context_t* restrict ctx, size_t* n)
  * 
  * @param   ctx    The state of the library, must be connected
  * @param   async  Information about the request
- * @return         1 if the server sent an error, 0 on success, -1 on failure.
- *                 Information about failure is copied `ctx`.
+ * @return         1 if the server sent an error (even indicating success),
+ *                 0 on success, -1 on failure. Information about failure
+ *                 is copied `ctx`.
  */
 static int check_error(libcoopgamma_context_t* restrict ctx, libcoopgamma_async_context_t* restrict async)
 {
+  char temp[3 * sizeof(uint64_t) + 1];
+  size_t old_tail = ctx->inbound_tail;
+  char* line;
+  char* value;
+  int command_ok = 0;
+  int have_in_response_to = 0;
+  int have_error = 0;
+  int bad = 0;
+  
+  for (;;)
+    {
+      line = next_header(ctx);
+      value = strchr(line, ':') + 2;
+      if (!*line)
+	break;
+      else if (!strcmp(line, "Command: error"))
+	command_ok = 1;
+      else if (strstr(line, "In response to: ") == line)
+	{
+	  uint32_t id = (uint32_t)atol(value);
+	  have_in_response_to = 1 + !!have_in_response_to;
+	  if (id != async->message_id)
+	    bad = 1;
+	  else
+	    {
+	      sprintf(temp, "%" PRIu32, id);
+	      if (strcmp(value, temp))
+		bad = 1;
+	    }
+	}
+      else if (strstr(line, "Error: ") == line)
+	{
+	  have_error = 1 + !!have_error;
+	  ctx->error.server_side = 1;
+	  ctx->error.custom = (strstr(value, "custom") == value);
+	  if (ctx->error.custom)
+	    {
+	      if (value[6] == '\0')
+		{
+		  ctx->error.number = 0;
+		  continue;
+		}
+	      else if (value[6] != ' ')
+		{
+		  bad = 1;
+		  continue;
+		}
+	    }
+	  ctx->error.number = (uint64_t)atoll(value);
+	  sprintf(temp, "%" PRIu64, ctx->error.number);
+	  if (strcmp(value, temp))
+	    bad = 1;
+	}
+    }
+  
+  if (command_ok == 0)
+    {
+      ctx->inbound_tail = old_tail;
+      return 0;
+    }
+  
+  if (bad || (have_in_response_to != 1) || (have_error != 1))
+    {
+      errno = EBADMSG;
+      copy_errno(ctx);
+      return -1;
+    }
+  
+  return 1;
 }
 
 
@@ -1468,7 +1575,7 @@ char** libcoopgamma_get_crtcs_recv(libcoopgamma_context_t* restrict ctx,
   
   for (;;)
     {
-      line = next_line(ctx);
+      line = next_header(ctx);
       if (!*line)
 	break;
       else if (!strcmp(line, "Command: crtc-enumeration"))
@@ -1582,7 +1689,7 @@ int libcoopgamma_get_gamma_info_recv(libcoopgamma_crtc_info_t* restrict info,
   
   for (;;)
     {
-      line = next_line(ctx);
+      line = next_header(ctx);
       value = strchr(line, ':') + 2;
       if (!*line)
 	break;
@@ -1697,8 +1804,7 @@ int libcoopgamma_get_gamma_send(libcoopgamma_filter_query_t* restrict query,
  * 
  * @param   table  Output for the response, must be initialised
  * @param   ctx    The state of the library, must be connected
- * @param   async  Information about the request, that is needed to
- *                 identify and parse the response, is stored here
+ * @param   async  Information about the request
  * @return         Zero on success, -1 on error, in which case `ctx->error`
  *                 (rather than `errno`) is read for information about the error
  */
@@ -1725,7 +1831,7 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict table,
   
   for (;;)
     {
-      line = next_line(ctx);
+      line = next_header(ctx);
       value = strchr(line, ':') + 2;
       if (!*line)
 	break;
@@ -1924,8 +2030,7 @@ int libcoopgamma_set_gamma_send(libcoopgamma_filter_t* restrict filter, libcoopg
  * Apply, update, or remove a gamma ramp adjustment, receive response part
  * 
  * @param   ctx    The state of the library, must be connected
- * @param   async  Information about the request, that is needed to
- *                 identify and parse the response, is stored here
+ * @param   async  Information about the request
  * @return         Zero on success, -1 on error, in which case `ctx->error`
  *                 (rather than `errno`) is read for information about the error
  */
@@ -1937,7 +2042,7 @@ int libcoopgamma_set_gamma_recv(libcoopgamma_context_t* restrict ctx,
   if (check_error(ctx, async))
     return -(ctx->error.custom || ctx->error.number);
   
-  while (*next_line(ctx));
+  while (*next_header(ctx));
   (void) next_payload(ctx, &_n);
   
   errno = EBADMSG;
