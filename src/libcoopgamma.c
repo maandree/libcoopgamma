@@ -1279,6 +1279,13 @@ int libcoopgamma_connect(const char* restrict method, const char* restrict site,
  * By default communication is blocking, this function
  * can be used to switch between blocking and nonblocking
  * 
+ * After setting the communication to nonblocking,
+ * `libcoopgamma_flush`, `libcoopgamma_synchronise` and
+ * and request-sending functions can fail with EAGAIN and
+ * EWOULDBLOCK. It is safe to continue with `libcoopgamma_flush`
+ * (for `libcoopgamma_flush` it selfand equest-sending functions)
+ * or `libcoopgamma_synchronise` just like EINTR failure.
+ * 
  * @param   ctx          The state of the library, must be connected
  * @param   nonblocking  Nonblocking mode?
  * @return               Zero on success, -1 on error
