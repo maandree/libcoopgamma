@@ -20,8 +20,16 @@
 
 
 
+#include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
+
+
+
+#if defined(__clang__)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdocumentation"
+#endif
 
 
 
@@ -266,7 +274,7 @@ typedef struct libcoopgamma_ramps##suffix	\
    */						\
   type* blue;					\
 						\
-} libcoopgamma_ramps##suffix##_t;
+} libcoopgamma_ramps##suffix##_t
 
 /**
  * `typedef struct libcoopgamma_ramps8 libcoopgamma_ramps8_t`
@@ -318,11 +326,6 @@ LIBCOOPGAMMA_RAMPS__(d, double);
 typedef struct libcoopgamma_filter
 {
   /**
-   * The data type and bit-depth of the ramp stops
-   */
-  libcoopgamma_depth_t depth;
-  
-  /**
    * The priority of the filter, higher priority
    * is applied first. The gamma correction should
    * have priority 0.
@@ -348,6 +351,11 @@ typedef struct libcoopgamma_filter
    * only `.crtc` and `.class` need also be defined
    */
   libcoopgamma_lifespan_t lifespan;
+  
+  /**
+   * The data type and bit-depth of the ramp stops
+   */
+  libcoopgamma_depth_t depth;
   
   /**
    * The gamma ramp adjustments of the filter
@@ -405,6 +413,17 @@ typedef struct libcoopgamma_crtc_info
   libcoopgamma_depth_t depth;
   
   /**
+   * Is gamma adjustments supported on the CRTC?
+   * If not, `.depth`, `.red_size`, `.green_size`,
+   * and `.blue_size` are undefined
+   */
+  libcoopgamma_support_t supported;
+  
+#if INT_MAX != LONG_MAX
+  int padding__;
+#endif
+  
+  /**
    * The number of stops in the red ramp
    */
   size_t red_size;
@@ -419,13 +438,6 @@ typedef struct libcoopgamma_crtc_info
    */
   size_t blue_size;
   
-  /**
-   * Is gamma adjustments supported on the CRTC?
-   * If not, `.depth`, `.red_size`, `.green_size`,
-   * and `.blue_size` are undefined
-   */
-  libcoopgamma_support_t supported;
-  
 } libcoopgamma_crtc_info_t;
 
 
@@ -436,6 +448,18 @@ typedef struct libcoopgamma_crtc_info
  */
 typedef struct libcoopgamma_filter_query
 {
+  /**
+   * Do no return filters with higher
+   * priority than this value
+   */
+  int64_t high_priority;
+  
+  /**
+   * Do no return filters with lower
+   * priority than this value
+   */
+  int64_t low_priority;
+  
   /**
    * The CRTC for which the the current
    * filters shall returned
@@ -448,17 +472,9 @@ typedef struct libcoopgamma_filter_query
    */
   int coalesce;
   
-  /**
-   * Do no return filters with higher
-   * priority than this value
-   */
-  int64_t high_priority;
-  
-  /**
-   * Do no return filters with lower
-   * priority than this value
-   */
-  int64_t low_priority;
+#if INT_MAX != LONG_MAX
+  int padding__;
+#endif
   
 } libcoopgamma_filter_query_t;
 
@@ -528,11 +544,6 @@ typedef struct libcoopgamma_queried_filter
 typedef struct libcoopgamma_filter_table
 {
   /**
-   * The data type and bit-depth of the ramp stops
-   */
-  libcoopgamma_depth_t depth;
-  
-  /**
    * The number of stops in the red ramp
    */
   size_t red_size;
@@ -563,6 +574,15 @@ typedef struct libcoopgamma_filter_table
    * `.filters->priority` is undefined.
    */
   libcoopgamma_queried_filter_t* filters;
+  
+  /**
+   * The data type and bit-depth of the ramp stops
+   */
+  libcoopgamma_depth_t depth;
+  
+#if INT_MAX != LONG_MAX
+  int padding__;
+#endif
   
 } libcoopgamma_filter_table_t;
 
@@ -610,11 +630,6 @@ typedef struct libcoopgamma_error
 typedef struct libcoopgamma_context
 {
   /**
-   * File descriptor for the socket
-   */
-  int fd;
-  
-  /**
    * The error of the last failed function call
    * 
    * This member is undefined after successful function call
@@ -622,9 +637,37 @@ typedef struct libcoopgamma_context
   libcoopgamma_error_t error;
   
   /**
+   * File descriptor for the socket
+   */
+  int fd;
+  
+  /**
+   * Whether `libcoopgamma_synchronise` have
+   * read the empty end-of-headers line
+   */
+  int have_all_headers;
+  
+  /**
+   * Whether `libcoopgamma_synchronise` is reading
+   * a corrupt but recoverable message
+   */
+  int bad_message;
+  
+#if INT_MAX != LONG_MAX
+  int padding__;
+#endif
+  
+  /**
    * Message ID of the next message
    */
   uint32_t message_id;
+  
+  /**
+   * The ID of outbound message to which the inbound
+   * message being read by `libcoopgamma_synchronise`
+   * is a response
+   */
+  uint32_t in_response_to;
   
   /**
    * Buffer with the outbound message
@@ -677,25 +720,6 @@ typedef struct libcoopgamma_context
    * is being read by `libcoopgamma_synchronise`
    */
   size_t curline;
-  
-  /**
-   * The ID of outbound message to which the inbound
-   * message being read by `libcoopgamma_synchronise`
-   * is a response
-   */
-  uint32_t in_response_to;
-  
-  /**
-   * Whether `libcoopgamma_synchronise` have
-   * read the empty end-of-headers line
-   */
-  int have_all_headers;
-  
-  /**
-   * Whether `libcoopgamma_synchronise` is reading
-   * a corrupt but recoverable message
-   */
-  int bad_message;
   
 } libcoopgamma_context_t;
 
@@ -768,7 +792,7 @@ typedef struct libcoopgamma_async_context
  * `this->red_size`, `this->green_size`, and `this->blue_size` must already be set
  * 
  * @param   this   The record to initialise
- * @para    width  The `sizeof(*(this->red))`
+ * @param   width  The `sizeof(*(this->red))`
  * @return         Zero on success, -1 on error
  */
 int (libcoopgamma_ramps_initialise)(void* restrict, size_t);
@@ -1465,6 +1489,12 @@ int libcoopgamma_set_gamma_recv(libcoopgamma_context_t* restrict, libcoopgamma_a
  */
 int libcoopgamma_set_gamma_sync(libcoopgamma_filter_t* restrict, libcoopgamma_depth_t,
 				libcoopgamma_context_t* restrict);
+
+
+
+#if defined(__clang__)
+# pragma GCC diagnostic pop
+#endif
 
 
 

@@ -31,9 +31,18 @@
 
 
 
+#if defined(__clang__)
+# pragma GCC diagnostic ignored "-Wdocumentation"
+# pragma GCC diagnostic ignored "-Wcovered-switch-default"
+# pragma GCC diagnostic ignored "-Wcast-align"
+#endif
+
+
+
 #if defined(__GNUC__)
 # define NAME_OF_THE_PROCESS  (argv0)
-char* argv0 __attribute__((weak)) = "libcoopgamma";
+extern const char* argv0;
+const char* argv0 __attribute__((weak)) = "libcoopgamma";
 #else
 # define NAME_OF_THE_PROCESS  ("libcoopgamma")
 #endif
@@ -61,7 +70,7 @@ char* argv0 __attribute__((weak)) = "libcoopgamma";
   ((buf != NULL ? *(type*)(buf + off) = (datum) : 0), off += sizeof(type))
 
 #define unmarshal_prim(datum, type)  \
-  ((datum) = *(type*)(buf + off), off += sizeof(type))
+  ((datum) = *(const type*)(buf + off), off += sizeof(type))
 
 #define marshal_version(version)  \
   marshal_prim(version, int)
@@ -119,30 +128,37 @@ char* argv0 __attribute__((weak)) = "libcoopgamma";
     (ctx)->error.description = NULL))
 
 
-#define SYNC_CALL(send_call, recv_call, fail_return)		\
-  libcoopgamma_async_context_t async;				\
-  size_t _selected;						\
-  if (send_call < 0)						\
-    {								\
-    reflush:							\
-      if (errno != EINTR)					\
-	return fail_return;					\
-      if (libcoopgamma_flush(ctx) < 0)				\
-	goto reflush;						\
-    }								\
-resync:								\
-  switch (libcoopgamma_synchronise(ctx, &async, 1, &_selected))	\
-    {								\
-    default:							\
-      break;							\
-    case -1:							\
-      if (errno != EINTR)					\
-	return fail_return;					\
-      /* Fall through */					\
-    case -2:							\
-      goto resync;						\
-    }								\
+#define SYNC_CALL(send_call, recv_call, fail_return)			\
+  libcoopgamma_async_context_t async;					\
+  size_t _selected;							\
+  if (send_call < 0)							\
+    {									\
+    reflush:								\
+      if (errno != EINTR)						\
+	return fail_return;						\
+      if (libcoopgamma_flush(ctx) < 0)					\
+	goto reflush;							\
+    }									\
+resync:									\
+  switch (libcoopgamma_synchronise(ctx, &async, (size_t)1, &_selected))	\
+    {									\
+    default:								\
+      break;								\
+    case -1:								\
+      if (errno != EINTR)						\
+	return fail_return;						\
+      /* Fall through */						\
+    case -2:								\
+      goto resync;							\
+    }									\
   return recv_call
+
+
+#define INTEGRAL_DEPTHS		\
+  case LIBCOOPGAMMA_UINT8:	\
+  case LIBCOOPGAMMA_UINT16:	\
+  case LIBCOOPGAMMA_UINT32:	\
+  case LIBCOOPGAMMA_UINT64:
 
 
 
@@ -153,7 +169,7 @@ resync:								\
  * `this->red_size`, `this->green_size`, and `this->blue_size` must already be set
  * 
  * @param   this   The record to initialise
- * @para    width  The `sizeof(*(this->red))`
+ * @param   width  The `sizeof(*(this->red))`
  * @return         Zero on success, -1 on error
  */
 int (libcoopgamma_ramps_initialise)(void* restrict this, size_t width)
@@ -200,7 +216,7 @@ void libcoopgamma_ramps_destroy(void* restrict this)
  */
 size_t (libcoopgamma_ramps_marshal)(const void* restrict this, void* restrict vbuf, size_t width)
 {
-  libcoopgamma_ramps8_t* restrict this8 = (libcoopgamma_ramps8_t* restrict)this;
+  const libcoopgamma_ramps8_t* restrict this8 = (const libcoopgamma_ramps8_t* restrict)this;
   MARSHAL_PROLOGUE;
   marshal_version(LIBCOOPGAMMA_RAMPS_VERSION);
   marshal_prim(this8->red_size, size_t);
@@ -368,6 +384,9 @@ int libcoopgamma_crtc_info_initialise(libcoopgamma_crtc_info_t* restrict this)
  * 
  * @param  this  The record to destroy
  */
+#if defined(__GNUC__)
+__attribute__((__const__))
+#endif
 void libcoopgamma_crtc_info_destroy(libcoopgamma_crtc_info_t* restrict this)
 {
   (void) this;
@@ -901,6 +920,9 @@ int libcoopgamma_async_context_initialise(libcoopgamma_async_context_t* restrict
  * 
  * @param  this  The record to destroy
  */
+#if defined(__GNUC__)
+__attribute__((__const__))
+#endif
 void libcoopgamma_async_context_destroy(libcoopgamma_async_context_t* restrict this)
 {
   (void) this;
@@ -964,7 +986,7 @@ char** libcoopgamma_get_methods(void)
   char** rc;
   char* buffer;
   int n = 0, saved_errno;
-  size_t size;
+  size_t size = 0;
   
   methods = malloc(4 * sizeof(*methods));
   if (methods == NULL)
@@ -975,7 +997,7 @@ char** libcoopgamma_get_methods(void)
       char* method;
       if ((n >= 4) && ((n & -n) == n))
 	{
-	  void* new = realloc(methods, (n << 1) * sizeof(*methods));
+	  void* new = realloc(methods, (size_t)(n << 1) * sizeof(*methods));
 	  if (new == NULL)
 	    goto fail;
 	  methods = new;
@@ -992,10 +1014,10 @@ char** libcoopgamma_get_methods(void)
       size += strlen(method) + 1;
     }
   
-  rc = malloc((n + 1) * sizeof(char*) + size);
+  rc = malloc((size_t)(n + 1) * sizeof(char*) + size);
   if (rc == NULL)
     goto fail;
-  buffer = ((char*)rc) + (n + 1) * sizeof(char*);
+  buffer = ((char*)rc) + (size_t)(n + 1) * sizeof(char*);
   rc[n] = NULL;
   while (n--)
     {
@@ -1059,7 +1081,14 @@ static char* libcoopgamma_query(const char* restrict method, const char* restric
 	    goto fail_child;
 	  close(pipe_rw[1]);
 	}
+#if defined(__GNUC__)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wcast-qual"
+#endif
       execvp("coopgammad", (char* const*)(args));
+#if defined(__GNUC__)
+# pragma GCC diagnostic pop
+#endif
     fail_child:
       saved_errno = errno;
       perror(NAME_OF_THE_PROCESS);
@@ -1325,7 +1354,7 @@ int libcoopgamma_connect(const char* restrict method, const char* restrict site,
     return -1;
 
  retry:
-  if (connect(ctx->fd, (struct sockaddr*)(&address), sizeof(address)) < 0)
+  if (connect(ctx->fd, (struct sockaddr*)(&address), (socklen_t)sizeof(address)) < 0)
     {
       if (((errno == ECONNREFUSED) || (errno == ENOENT) || (errno == ENOTDIR)) && !tries++)
 	{
@@ -1336,10 +1365,16 @@ int libcoopgamma_connect(const char* restrict method, const char* restrict site,
 	    case 0:
 	      /* Child */
 	      close(ctx->fd);
+#if defined(__GNUC__)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wcast-qual"
+#endif
 	      execvp("coopgammad", (char* const*)(args));
+#if defined(__GNUC__)
+# pragma GCC diagnostic pop
+#endif
 	      perror(NAME_OF_THE_PROCESS);
 	      exit(1);
-	      break;
 	    default:
 	      /* Parent */
 	      if (waitpid(pid, &status, 0) < 0)
@@ -1570,7 +1605,7 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
     {									\
       ssize_t n__;							\
       char* msg__;							\
-      snprintf(NULL, 0, format "%zn", __VA_ARGS__, &n__);		\
+      snprintf(NULL, (size_t)0, format "%zn", __VA_ARGS__, &n__);	\
       msg__ = malloc((size_t)n__ + (payload_size));			\
       if (msg__ == NULL)						\
 	goto fail;							\
@@ -1765,6 +1800,13 @@ static int check_error(libcoopgamma_context_t* restrict ctx, libcoopgamma_async_
 
 
 
+#if defined(__GNUC__)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wnonnull"
+#endif
+
+
+
 /**
  * List all available CRTC:s, send request part
  * 
@@ -1779,7 +1821,7 @@ int libcoopgamma_get_crtcs_send(libcoopgamma_context_t* restrict ctx,
 				libcoopgamma_async_context_t* restrict async)
 {
   async->message_id = ctx->message_id;
-  SEND_MESSAGE(ctx, NULL, 0,
+  SEND_MESSAGE(ctx, NULL, (size_t)0,
 	       "Command: enumerate-crtcs\n"
 	       "Message ID: %" PRIu32 "\n"
 	       "\n",
@@ -1911,7 +1953,7 @@ int libcoopgamma_get_gamma_info_send(const char* restrict crtc, libcoopgamma_con
     }
   
   async->message_id = ctx->message_id;
-  SEND_MESSAGE(ctx, NULL, 0,
+  SEND_MESSAGE(ctx, NULL, (size_t)0,
 	       "Command: get-gamma-info\n"
 	       "Message ID: %" PRIu32 "\n"
 	       "CRTC: %s\n"
@@ -2074,7 +2116,7 @@ int libcoopgamma_get_gamma_send(libcoopgamma_filter_query_t* restrict query,
   
   async->message_id = ctx->message_id;
   async->coalesce = query->coalesce;
-  SEND_MESSAGE(ctx, NULL, 0,
+  SEND_MESSAGE(ctx, NULL, (size_t)0,
 	       "Command: get-gamma\n"
 	       "Message ID: %" PRIu32 "\n"
 	       "CRTC: %s\n"
@@ -2174,8 +2216,10 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict table,
     {
     case LIBCOOPGAMMA_FLOAT:   width = sizeof(float);   break;
     case LIBCOOPGAMMA_DOUBLE:  width = sizeof(double);  break;
-    default:
-      width = table->depth / 8;
+    default: INTEGRAL_DEPTHS
+      if ((table->depth <= 0) || ((table->depth & 7) != 0))
+	goto bad;
+      width = (size_t)(table->depth / 8);
       break;
     }
   
@@ -2304,13 +2348,13 @@ int libcoopgamma_set_gamma_send(libcoopgamma_filter_t* restrict filter, libcoopg
     {
     case LIBCOOPGAMMA_FLOAT:   stopwidth = sizeof(float);   break;
     case LIBCOOPGAMMA_DOUBLE:  stopwidth = sizeof(double);  break;
-    default:
+    default: INTEGRAL_DEPTHS
       if ((depth <= 0) || ((depth & 7) != 0))
 	{
 	  errno = EINVAL;
 	  goto fail;
 	}
-      stopwidth = depth / 8;
+      stopwidth = (size_t)(depth / 8);
       break;
     }
   
@@ -2392,4 +2436,10 @@ int libcoopgamma_set_gamma_sync(libcoopgamma_filter_t* restrict filter, libcoopg
   SYNC_CALL(libcoopgamma_set_gamma_send(filter, depth, ctx, &async),
 	    libcoopgamma_set_gamma_recv(ctx, &async), -1);
 }
+
+
+
+#if defined(__GNUC__)
+# pragma GCC diagnostic pop
+#endif
 
