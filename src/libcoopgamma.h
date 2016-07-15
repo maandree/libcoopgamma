@@ -672,6 +672,31 @@ typedef struct libcoopgamma_context
    */
   size_t length;
   
+  /**
+   * The beginning of the current line that
+   * is being read by `libcoopgamma_synchronise`
+   */
+  size_t curline;
+  
+  /**
+   * The ID of outbound message to which the inbound
+   * message being read by `libcoopgamma_synchronise`
+   * is a response
+   */
+  uint32_t in_response_to;
+  
+  /**
+   * Whether `libcoopgamma_synchronise` have
+   * read the empty end-of-headers line
+   */
+  int have_all_headers;
+  
+  /**
+   * Whether `libcoopgamma_synchronise` is reading
+   * a corrupt but recoverable message
+   */
+  int bad_message;
+  
 } libcoopgamma_context_t;
 
 
@@ -1252,7 +1277,9 @@ int libcoopgamma_flush(libcoopgamma_context_t* restrict);
  *                    Functions that parse the message will detect such corruption.
  * @return            Zero on success, -1 on error, -2 if the message is ignored
  *                    which happens if corresponding `libcoopgamma_async_context_t`
- *                    is not listed
+ *                    is not listed. If `-1` is returned, `errno` will be set,
+ *                    if it is set to `ENOTRECOVERABLE` you have receive a corrupt
+ *                    message and the context has been tainted beyond recover.
  */
 int libcoopgamma_synchronise(libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict,
 			     size_t, size_t* restrict);
