@@ -1208,6 +1208,16 @@ char* libcoopgamma_get_socket_file(const char* restrict, const char* restrict);
 int libcoopgamma_connect(const char* restrict, const char* restrict, libcoopgamma_context_t* restrict);
 
 /**
+ * By default communication is blocking, this function
+ * can be used to switch between blocking and nonblocking
+ * 
+ * @param   ctx          The state of the library, must be connected
+ * @param   nonblocking  Nonblocking mode?
+ * @return               Zero on success, -1 on error
+ */
+int libcoopgamma_set_nonblocking(libcoopgamma_context_t* restrict, int);
+
+/**
  * Send all pending outbound data
  * 
  * If this function or another function that sends a request
@@ -1216,10 +1226,30 @@ int libcoopgamma_connect(const char* restrict, const char* restrict, libcoopgamm
  * be in a properly configured state if a function fails
  * with EINTR.
  * 
- * @param   ctx  The state of the library, must be initialised
+ * @param   ctx  The state of the library, must be connected
  * @return       Zero on success, -1 on error
  */
 int libcoopgamma_flush(libcoopgamma_context_t* restrict);
+
+/**
+ * Wait for the next message to be received
+ * 
+ * @param   ctx       The state of the library, must be connected
+ * @param   pending   Information for each pending request
+ * @param   n         The number of elements in `pending`
+ * @param   selected  The index of the element in `pending` which corresponds
+ *                    to the first inbound message, note that this only means
+ *                    that the message is not for any of the other request,
+ *                    if the message is corrupt any of the listed requests can
+ *                    be selected even if it is not for any of the requests.
+ *                    Functions that parse the message will detect such corruption.
+ * @return            Zero on success, -1 on error, -2 if the message is ignored
+ *                    which happens if corresponding `libcoopgamma_async_context_t`
+ *                    is not listed
+ */
+int libcoopgamma_synchronise(libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict,
+			     size_t, size_t* restrict);
+
 
 /**
  * List all available CRTC:s, send request part

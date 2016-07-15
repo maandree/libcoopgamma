@@ -20,6 +20,7 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1275,6 +1276,27 @@ int libcoopgamma_connect(const char* restrict method, const char* restrict site,
 
 
 /**
+ * By default communication is blocking, this function
+ * can be used to switch between blocking and nonblocking
+ * 
+ * @param   ctx          The state of the library, must be connected
+ * @param   nonblocking  Nonblocking mode?
+ * @return               Zero on success, -1 on error
+ */
+int libcoopgamma_set_nonblocking(libcoopgamma_context_t* restrict ctx, int nonblocking)
+{
+  int flags = fcntl(ctx->fd, F_GETFL);
+  if (nonblocking)
+    flags |= O_NONBLOCK;
+  else
+    flags &= ~O_NONBLOCK;
+  if (fcntl(ctx->fd, F_SETFL, flags) == -1)
+    return -1;
+  return 0;
+}
+
+
+/**
  * Send all pending outbound data
  * 
  * If this function or another function that sends a request
@@ -1283,7 +1305,7 @@ int libcoopgamma_connect(const char* restrict method, const char* restrict site,
  * be in a properly configured state if a function fails
  * with EINTR.
  * 
- * @param   ctx  The state of the library, must be initialised
+ * @param   ctx  The state of the library, must be connected
  * @return       Zero on success, -1 on error
  */
 int libcoopgamma_flush(libcoopgamma_context_t* restrict ctx)
@@ -1309,6 +1331,29 @@ int libcoopgamma_flush(libcoopgamma_context_t* restrict ctx)
     }
   
   return 0;
+}
+
+
+/**
+ * Wait for the next message to be received
+ * 
+ * @param   ctx       The state of the library, must be connected
+ * @param   pending   Information for each pending request
+ * @param   n         The number of elements in `pending`
+ * @param   selected  The index of the element in `pending` which corresponds
+ *                    to the first inbound message, note that this only means
+ *                    that the message is not for any of the other request,
+ *                    if the message is corrupt any of the listed requests can
+ *                    be selected even if it is not for any of the requests.
+ *                    Functions that parse the message will detect such corruption.
+ * @return            Zero on success, -1 on error, -2 if the message is ignored
+ *                    which happens if corresponding `libcoopgamma_async_context_t`
+ *                    is not listed
+ */
+int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
+			     libcoopgamma_async_context_t* restrict pending,
+			     size_t n, size_t* restrict selected)
+{
 }
 
 
@@ -1520,6 +1565,7 @@ static int check_error(libcoopgamma_context_t* restrict ctx, libcoopgamma_async_
   
   return 1;
 }
+
 
 
 /**
