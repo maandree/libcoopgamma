@@ -1932,5 +1932,16 @@ int libcoopgamma_set_gamma_send(libcoopgamma_filter_t* restrict filter, libcoopg
 int libcoopgamma_set_gamma_recv(libcoopgamma_context_t* restrict ctx,
 				libcoopgamma_async_context_t* restrict async)
 {
+  size_t _n = 0;
+  
+  if (check_error(ctx, async))
+    return -(ctx->error.custom || ctx->error.number);
+  
+  while (*next_line(ctx));
+  (void) next_payload(ctx, &_n);
+  
+  errno = EBADMSG;
+  copy_errno(ctx);
+  return -1;
 }
 
