@@ -858,6 +858,7 @@ int libcoopgamma_context_unmarshal(libcoopgamma_context_t* restrict this,
 int libcoopgamma_async_context_initialise(libcoopgamma_async_context_t* restrict this)
 {
   this->message_id = 0;
+  this->coalesce = 0;
   return 0;
 }
 
@@ -892,6 +893,7 @@ size_t libcoopgamma_async_context_marshal(const libcoopgamma_async_context_t* re
   MARSHAL_PROLOGUE;
   marshal_version(LIBCOOPGAMMA_ASYNC_CONTEXT_VERSION);
   marshal_prim(this->message_id, uint32_t);
+  marshal_prim(this->coalesce, int);
   MARSHAL_EPILOGUE;
 }
 
@@ -911,6 +913,7 @@ int libcoopgamma_async_context_unmarshal(libcoopgamma_async_context_t* restrict 
   UNMARSHAL_PROLOGUE;
   unmarshal_version(LIBCOOPGAMMA_ASYNC_CONTEXT_VERSION);
   unmarshal_prim(this->message_id, uint32_t);
+  unmarshal_prim(this->coalesce, int);
   UNMARSHAL_EPILOGUE;
 }
 
@@ -1670,6 +1673,7 @@ int libcoopgamma_get_gamma_send(libcoopgamma_filter_query_t* restrict query,
     }
   
   async->message_id = ctx->message_id;
+  async->coalesce = query->coalesce;
   SEND_MESSAGE(ctx, NULL, 0,
 	       "Command: get-gamma\n"
 	       "Message ID: %" PRIu32 "\n"
@@ -1702,6 +1706,133 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict table,
 				libcoopgamma_context_t* restrict ctx,
 				libcoopgamma_async_context_t* restrict async)
 {
+  char temp[3 * sizeof(size_t) + 1];
+  char* line;
+  char* value;
+  char* payload;
+  size_t i, n, width, clutsize;
+  int have_depth = 0;
+  int have_red_size = 0;
+  int have_green_size = 0;
+  int have_blue_size = 0;
+  int have_tables = 0;
+  int bad = 0, r = 0, g = 0;
+  
+  if (check_error(ctx, async))
+    return -1;
+  
+  libcoopgamma_filter_table_destroy(table);
+  
+  for (;;)
+    {
+      line = next_line(ctx);
+      value = strchr(line, ':') + 2;
+      if (!*line)
+	break;
+      else if (strstr(line, "Depth: ") == line)
+	{
+	  have_depth = 1 + !!have_depth;
+	  if      (!strcmp(value, "8"))   table->depth = LIBCOOPGAMMA_UINT8;
+	  else if (!strcmp(value, "16"))  table->depth = LIBCOOPGAMMA_UINT16;
+	  else if (!strcmp(value, "32"))  table->depth = LIBCOOPGAMMA_UINT32;
+	  else if (!strcmp(value, "64"))  table->depth = LIBCOOPGAMMA_UINT64;
+	  else if (!strcmp(value, "f"))   table->depth = LIBCOOPGAMMA_FLOAT;
+	  else if (!strcmp(value, "d"))   table->depth = LIBCOOPGAMMA_DOUBLE;
+	  else
+	    bad = 1;
+	}
+      else if (((r = (strstr(line, "Red size: ")   == line))) ||
+	       ((g = (strstr(line, "Green size: ") == line))) ||
+	             (strstr(line, "Blue size: ")  == line))
+	{
+	  size_t* out;
+	  if (r)       have_red_size   = 1 + !!have_red_size,   out = &(table->red_size);
+	  else if (g)  have_green_size = 1 + !!have_green_size, out = &(table->green_size);
+	  else         have_blue_size  = 1 + !!have_blue_size,  out = &(table->blue_size);
+	  *out = (size_t)atol(value);
+	  sprintf(temp, "%zu", *out);
+	  if (strcmp(value, temp))
+	    bad = 1;
+	}
+      else if (strstr(line, "Tables: ") == line)
+	{
+	  have_tables = 1 + have_tables;
+	  table->filter_count = (size_t)atol(value);
+	  sprintf(temp, "%zu", table->filter_count);
+	  if (strcmp(value, temp))
+	    bad = 1;
+	}
+    }
+  
+  payload = next_payload(ctx, &n);
+  
+  if (bad || (have_depth != 1) || (have_red_size != 1) || (have_green_size != 1) ||
+      (have_blue_size != 1) || (async->coalesce ? (have_tables > 1) : (have_tables == 0)) ||
+      (payload == NULL))
+    goto bad;
+  
+  switch (table->depth)
+    {
+    case LIBCOOPGAMMA_FLOAT:   width = sizeof(float);   break;
+    case LIBCOOPGAMMA_DOUBLE:  width = sizeof(double);  break;
+    default:
+      width = table->depth / 8;
+      break;
+    }
+  
+  clutsize = table->red_size + table->green_size + table->blue_size;
+  clutsize *= width;
+  
+  if (async->coalesce)
+    {
+      if (n != clutsize)
+	goto bad;
+      table->filters = malloc(sizeof(*(table->filters)));
+      if (table->filters == NULL)
+	goto fail;
+      table->filters->priority = 0;
+      table->filters->class = NULL;
+      if ((libcoopgamma_ramps_initialise)(&(table->filters->ramps), width) < 0)
+	goto fail;
+      memcpy(table->filters->ramps.u8.red, payload, clutsize);
+    }
+  else
+    {
+      size_t off = 0, len;
+      table->filters = calloc(table->filter_count, sizeof(*(table->filters)));
+      if (table->filters == NULL)
+	goto fail;
+      for (i = 0; i < table->filter_count; i++)
+	{
+	  if (off + sizeof(int64_t) > n)
+	    goto bad;
+	  table->filters[i].priority = *(int64_t*)payload;
+	  off += sizeof(int64_t);
+	  if (memchr(payload + off, '\0', n - off) == NULL)
+	    goto bad;
+	  len = strlen(payload + off) + 1;
+	  table->filters[i].class = malloc(len);
+	  if (table->filters[i].class == NULL)
+	    goto fail;
+	  memcpy(table->filters[i].class, payload + off, len);
+	  off += len;
+	  if (off + clutsize > n)
+	    goto bad;
+	  if ((libcoopgamma_ramps_initialise)(&(table->filters[i].ramps), width) < 0)
+	    goto fail;
+	  memcpy(table->filters->ramps.u8.red, payload + off, clutsize);
+	  off += clutsize;
+	}
+      if (off != n)
+	goto bad;
+    }
+  
+  return 0;
+ bad:
+  errno = EBADMSG;
+ fail:
+  copy_errno(ctx);
+  return -1;
 }
 
 

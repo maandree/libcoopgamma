@@ -681,6 +681,12 @@ typedef struct libcoopgamma_async_context
    */
   uint32_t message_id;
   
+  /**
+   * Whether to coalesce all filters
+   * into one gamma ramp triplet
+   */
+  int coalesce;
+  
 } libcoopgamma_async_context_t;
 
 
