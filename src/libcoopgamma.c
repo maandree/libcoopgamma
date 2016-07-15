@@ -132,7 +132,7 @@ char* argv0 __attribute__((weak)) = "libcoopgamma";
 resync:								\
   switch (libcoopgamma_synchronise(ctx, &async, 1, &_selected))	\
     {								\
-    case 0:							\
+    default:							\
       break;							\
     case -1:							\
       if (errno != EINTR)					\
