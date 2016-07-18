@@ -1,0 +1,388 @@
+.TH LIBCOOPGAMMA 7 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma.h - Cooperative gamma library header
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+.fi
+.SH "DESCRIPTION"
+The
+.B <libcoopgamma.h>
+header includes the
+.BR <limits.h> ,
+.BR <stddef.h> ,
+and
+.BR <stdint.h>
+headers.
+.P
+The
+.B <libcoopgamma.h>
+header defines the macros which expands to integer
+constant expressions with distinct values:
+.TP
+.BR LIBCOOPGAMMA_SUCCESS " = 0"
+Unmarshal was successful.
+.TP
+.BR LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE " > 0"
+Unmarshal failed. The marshalled data was created
+with a older version of libcoopgamma that does not
+marshall the data in a compatible way.
+.TP
+.BR LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE " > 0"
+Unmarshal failed. The marshalled data was created with
+a newer version libcoopgamma that does not marshall
+the data in a compatible way.
+.TP
+.BR LIBCOOPGAMMA_ERRNO_SET " < 0 (-1)"
+Unmarshal failed because of an error,
+.I errno
+has been set appropriately.
+.P
+The
+.B <libcoopgamma.h>
+header defines
+.I "enum libcoopgamma_support"
+with the alias
+.I libcoopgamma_support_t
+and the following distinct values:
+.TP
+.BR LIBCOOPGAMMA_NO " = 0"
+Gamma adjustments are not supported.
+.TP
+.BR LIBCOOPGAMMA_MAYBE " = 1"
+Don't know whether gamma adjustments are supported.
+.TP
+.BR LIBCOOPGAMMA_YES " = 2"
+Gamma adjustments are supported.
+.P
+The
+.B <libcoopgamma.h>
+header defines
+.I "enum libcoopgamma_depth"
+with the alias
+.I libcoopgamma_depth_t
+and the following distinct values:
+.TP
+.BR LIBCOOPGAMMA_UINT8 " = 8"
+Gamma ramps with
+.I uint8_t
+as the stop-type are used
+.RI ( libcoopgamma_ramps8_t ).
+.TP
+.BR LIBCOOPGAMMA_UINT16 " = 16"
+Gamma ramps with
+.I uint16_t
+as the stop-type are used
+.RI ( libcoopgamma_ramps16_t ).
+.TP
+.BR LIBCOOPGAMMA_UINT32 " = 32"
+Gamma ramps with
+.I uint32_t
+as the stop-type are used
+.RI ( libcoopgamma_ramps32_t ).
+.TP
+.BR LIBCOOPGAMMA_UINT64 " = 64"
+Gamma ramps with
+.I uint64_t
+as the stop-type are used
+.RI ( libcoopgamma_ramps64_t ).
+.TP
+.BR LIBCOOPGAMMA_FLOAT " < 0"
+Gamma ramps with
+.I float
+as the stop-type are used
+.RI ( libcoopgamma_rampsf_t ).
+.TP
+.BR LIBCOOPGAMMA_DOUBLE " < 0"
+Gamma ramps with
+.I double
+as the stop-type are used
+.RI ( libcoopgamma_rampsd_t ).
+.P
+The
+.B <libcoopgamma.h>
+header defines
+.I "enum libcoopgamma_lifespan"
+with the alias
+.I libcoopgamma_lifespan_t
+and the following distinct values:
+.TP
+.BR LIBCOOPGAMMA_REMOVE " = 0"
+Remove the filter now.
+.TP
+.BR LIBCOOPGAMMA_UNTIL_DEATH " > 0"
+Remove the filter when disconnecting from the coopgamma
+server, or even explicitly removed, whichever comes first.
+.TP
+.BR LIBCOOPGAMMA_UNTIL_REMOVAL " > 0"
+Only remove the filter when it is explicitly requested.
+.P
+The
+.B <libcoopgamma.h>
+header defines
+.I "struct libcoopgamma_ramps8"
+.RI ( libcoopgamma_ramps8_t ),
+.I "struct libcoopgamma_ramps16"
+.RI ( libcoopgamma_ramps16_t ),
+.I "struct libcoopgamma_ramps32"
+.RI ( libcoopgamma_ramps32_t ),
+.I "struct libcoopgamma_ramps64"
+.RI ( libcoopgamma_ramps64_t ),
+.I "struct libcoopgamma_rampsf"
+.RI ( libcoopgamma_rampsf_t ),
+.I "struct libcoopgamma_rampsd"
+.RI ( libcoopgamma_rampsd_t ),
+with the following members,
+where
+.I type
+is
+.IR uint8_t ,
+.IR uint16_t ,
+.IR uint32_t ,
+.IR uint64_t ,
+.IR float ,
+and
+.I double
+for the respective structures:
+.TP
+.B "size_t red_size"
+ The number of stops in the red ramp.
+.TP
+.B "size_t green_size"
+The number of stops in the green ramp.
+.TP
+.B "size_t blue_size"
+The number of stops in the blue ramp.
+.TP
+.IB type " *red"
+The red ramp.
+.TP
+.IB type " *green"
+The green ramp.
+.TP
+.IB type " *blue"
+The blue ramp.
+.P
+The
+.B <libcoopgamma.h>
+header defines
+.I "union libcoopgamma_ramps"
+with alias
+.I libcoopgamma_ramps_t
+and the follow members:
+.TP
+.B "libcoopgamma_ramps8_t u8"
+.TP
+.B "libcoopgamma_ramps16_t u16"
+.TP
+.B "libcoopgamma_ramps32_t u32"
+.TP
+.B "libcoopgamma_ramps64_t u64"
+.TP
+.B "libcoopgamma_rampsf_t f"
+.TP
+.B "libcoopgamma_rampsd_t d"
+.P
+The
+.B <libcoopgamma.h>
+header defines
+.I "struct libcoopgamma_filter"
+with alias
+.I libcoopgamma_filter_t
+and the follow members:
+.TP
+.B "int64_t priority"
+The priority of the filter, higher priority is applied first.
+The gamma correction should have priority 0.
+.TP
+.B "char *crtc"
+The CRTC for which this filter shall be applied.
+.TP
+.B "char *class"
+Identifier for the filter. The syntax must be
+\(aq\fI${PACKAGE_NAME}\fP\fB::\fP\fI${COMMAND_NAME}\fP\fB::\fP\fI${RULE}\fP\(aq.
+.TP
+.B "enum libcoopgamma_lifespan lifespan"
+When shall the filter be removed?
+If this member's value is
+.IR LIBCOOPGAMMA_REMOVE ,
+only
+.I .crtc
+and
+.I .class
+need also be defined.
+.TP
+.B "enum libcoopgamma_depth depth"
+The data type and bit-depth of the ramp stops.
+.TP
+.B "union libcoopgamma_ramps ramps"
+The gamma ramp adjustments of the filter.
+.P
+The
+.B <libcoopgamma.h>
+header defines
+.I "struct libcoopgamma_crtc_info"
+with alias
+.I libcoopgamma_crtc_info_t
+and the follow members:
+.TP
+.B "int cooperative"
+Is cooperative gamma server running?
+.TP
+.B "enum libcoopgamma_depth depth"
+The data type and bit-depth of the ramp stops.
+.TP
+.B "enum libcoopgamma_support supported"
+Is gamma adjustments supported on the CRTC?
+If not,
+.IR .depth ,
+.IR .red_size ,
+.IR .green_size ,
+and
+.I .blue_size
+are undefined.
+.TP
+.B "size_t red_size"
+ The number of stops in the red ramp.
+.TP
+.B "size_t green_size"
+The number of stops in the green ramp.
+.TP
+.B "size_t blue_size"
+The number of stops in the blue ramp.
+.P
+The
+.B <libcoopgamma.h>
+header defines
+.I "struct libcoopgamma_filter_query"
+with alias
+.I libcoopgamma_filter_query_t
+and the follow members:
+.TP
+.B "int64_t high_priority"
+Do no return filters with higher priority than this value.
+.TP
+.B "int64_t low_priority"
+Do no return filters with lower priority than this value.
+.TP
+.B "char *crtc"
+The CRTC for which the the current filters shall returned
+.TP
+.B "int coalesce"
+Shall all selected filters be coalesced into one gamma ramp triplet?
+.P
+The
+.B <libcoopgamma.h>
+header defines
+.I "struct libcoopgamma_queried_filter"
+with alias
+.I libcoopgamma_queried_filter_t
+and the follow members:
+.TP
+.B "int64_t priority"
+The filter's priority.
+.TP
+.B "char *class"
+The filter's class.
+.TP
+.B "union libcoopgamma_ramps ramps"
+The gamma ramp adjustments of the filter
+.P
+The
+.B <libcoopgamma.h>
+header defines
+.I "struct libcoopgamma_filter_table"
+with alias
+.I libcoopgamma_filter_table_t
+and the follow members:
+.TP
+.B "size_t red_size"
+The number of stops in the red ramp.
+.TP
+.B "size_t green_size"
+The number of stops in the green ramp.
+.TP
+.B "size_t blue_size"
+The number of stops in the blue ramp.
+.TP
+.B "size_t filter_count"
+The number of filters.
+.TP
+.B "struct libcoopgamma_queried_filter_t *filters"
+The filters, should be ordered by priority
+in descending order (applied first goes first,
+applied last goes last), lest there is something                                                                 
+wrong with the coopgamma server.
+
+If filter coalition was requested, there will
+be exactly one filter
+.I "(.filter_count == 1)"
+and
+.I ".filters->class == NULL"
+and
+.I ".filters->priority"
+is undefined.
+.TP
+.B "enum libcoopgamma_depth depth"
+The data type and bit-depth of the ramp stops.
+.P
+The
+.B <libcoopgamma.h>
+header defines
+.I "struct libcoopgamma_error"
+with alias
+.I libcoopgamma_error_t
+and the follow members:
+.TP
+.B "uint64_t number"
+Error code.
+
+If
+.I ".custom"
+is false, 0 indicates success,
+otherwise, 0 indicates that no
+error code has been assigned.
+.TP
+.B "int custom"
+Is this a custom error?
+.TP
+.B "int server_side"
+Did the error occur on the server-side? 
+.TP
+.B "char *description"
+Error message, can be, and usually is,
+.I NULL
+if
+.I ".custom"
+is false.
+.P
+The
+.B <libcoopgamma.h>
+header defines
+.I "struct libcoopgamma_context"
+with alias
+.I libcoopgamma_context_t
+and the follow members and a lot
+if internal unlisted members:
+.TP
+.B "struct libcoopgamma_error error"
+The error of the last failed function call
+to function that documents that this member
+will be set on failure.
+
+This member is undefined after successful
+function call.
+.TP
+.B "int fd"
+File descriptor for the socket that connects
+the client to the server.
+.P
+The
+.B <libcoopgamma.h>
+header defines
+.I "struct libcoopgamma_async_context"
+with alias
+.I libcoopgamma_async_context_t.
+This structure has only internal members.
+.SH "SEE ALSO"
+.BR libcoopgamma (7)

@@ -35,6 +35,8 @@
 
 /**
  * Unmarshal was successful
+ * 
+ * This value will always be zero
  */
 #define LIBCOOPGAMMA_SUCCESS  0
 
@@ -42,6 +44,8 @@
  * Unmarshal failed: the marshalled data was created
  * with a older version of libcoopgamma that does not
  * marshall the data in a compatible way
+ * 
+ * This value will always be positive
  */
 #define LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE  1
 
@@ -49,11 +53,16 @@
  * Unmarshal failed: the marshalled data was created with
  * a newer version libcoopgamma that does not marshall
  * the data in a compatible way
+ * 
+ * This value will always be positive
  */
 #define LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE  2
 
 /**
  * Unmarshal failed because of an error, `errno` has been set
+ * 
+ * This value will always be -1 and will be the
+ * only negative value in this category of constants
  */
 #define LIBCOOPGAMMA_ERRNO_SET  -1
 
@@ -153,17 +162,23 @@ typedef enum libcoopgamma_support
 {
   /**
    * Gamma adjustments are not supported
+   * 
+   * This value will always be 0
    */
   LIBCOOPGAMMA_NO = 0,
   
   /**
    * Don't know whether gamma
-   ' adjustments are supported
+   * adjustments are supported
+   * 
+   * This value will always be 1
    */
   LIBCOOPGAMMA_MAYBE = 1,
   
   /**
    * Gamma adjustments are supported
+   * 
+   * This value will always be 2
    */
   LIBCOOPGAMMA_YES = 2
   
@@ -173,6 +188,10 @@ typedef enum libcoopgamma_support
 /**
  * Values used to tell which datatype
  * is used for the gamma ramp stops
+ * 
+ * The values will always be the number
+ * of bits for integral types, and
+ * negative for floating-point types
  */
 typedef enum libcoopgamma_depth
 {
@@ -217,6 +236,8 @@ typedef enum libcoopgamma_lifespan
 {
   /**
    * Remove the filter now
+   * 
+   * This value will always be 0
    */
   LIBCOOPGAMMA_REMOVE = 0,
   
@@ -320,6 +341,44 @@ LIBCOOPGAMMA_RAMPS__(d, double);
 
 
 /**
+ * Union with all ramp types.
+ */
+typedef union libcoopgamma_ramps
+{
+    /**
+     * 8-bit version
+     */
+    libcoopgamma_ramps8_t u8;
+    
+    /**
+     * 16-bit version
+     */
+    libcoopgamma_ramps16_t u16;
+    
+    /**
+     * 32-bit version
+     */
+    libcoopgamma_ramps32_t u32;
+    
+    /**
+     * 64-bit version
+     */
+    libcoopgamma_ramps64_t u64;
+    
+    /**
+     * Single precision floating-point version
+     */
+    libcoopgamma_rampsf_t f;
+    
+    /**
+     * Double precision floating-point version
+     */
+    libcoopgamma_rampsd_t d;
+    
+} libcoopgamma_ramps_t;
+
+
+/**
  * Data set to the coopgamma server to apply,
  * update, or remove a filter.
  */
@@ -360,39 +419,7 @@ typedef struct libcoopgamma_filter
   /**
    * The gamma ramp adjustments of the filter
    */
-  union
-  {
-    /**
-     * 8-bit version
-     */
-    libcoopgamma_ramps8_t u8;
-    
-    /**
-     * 16-bit version
-     */
-    libcoopgamma_ramps16_t u16;
-    
-    /**
-     * 32-bit version
-     */
-    libcoopgamma_ramps32_t u32;
-    
-    /**
-     * 64-bit version
-     */
-    libcoopgamma_ramps64_t u64;
-    
-    /**
-     * Single precision floating-point version
-     */
-    libcoopgamma_rampsf_t f;
-    
-    /**
-     * Double precision floating-point version
-     */
-    libcoopgamma_rampsd_t d;
-    
-  } ramps;
+  libcoopgamma_ramps_t ramps;
   
 } libcoopgamma_filter_t;
 
@@ -403,7 +430,7 @@ typedef struct libcoopgamma_filter
 typedef struct libcoopgamma_crtc_info
 {
   /**
-   * Cooperative gamma server is running
+   * Is cooperative gamma server running?
    */
   int cooperative;
   
@@ -499,39 +526,7 @@ typedef struct libcoopgamma_queried_filter
   /**
    * The gamma ramp adjustments of the filter
    */
-  union
-  {
-    /**
-     * 8-bit version
-     */
-    libcoopgamma_ramps8_t u8;
-    
-    /**
-     * 16-bit version
-     */
-    libcoopgamma_ramps16_t u16;
-    
-    /**
-     * 32-bit version
-     */
-    libcoopgamma_ramps32_t u32;
-    
-    /**
-     * 64-bit version
-     */
-    libcoopgamma_ramps64_t u64;
-    
-    /**
-     * Single precision floating-point version
-     */
-    libcoopgamma_rampsf_t f;
-    
-    /**
-     * Double precision floating-point version
-     */
-    libcoopgamma_rampsd_t d;
-    
-  } ramps;
+  libcoopgamma_ramps_t ramps;
   
 } libcoopgamma_queried_filter_t;
 
@@ -593,11 +588,11 @@ typedef struct libcoopgamma_filter_table
 typedef struct libcoopgamma_error
 {
   /**
-   * Error code number
+   * Error code
    * 
    * If `.custom` is false, 0 indicates
    * success, otherwise, 0 indicates that
-   * no error number has been assigned
+   * no error code has been assigned
    */
   uint64_t number;
   
@@ -640,6 +635,8 @@ typedef struct libcoopgamma_context
    * File descriptor for the socket
    */
   int fd;
+  
+  /* The members below are internal. */
   
   /**
    * Whether `libcoopgamma_synchronise` have
@@ -730,6 +727,8 @@ typedef struct libcoopgamma_context
  */
 typedef struct libcoopgamma_async_context
 {
+  /* All members are internal. */
+  
   /**
    * The value of the 'In response to' header
    * in the waited message

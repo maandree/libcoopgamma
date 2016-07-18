@@ -27,4 +27,5 @@ RATIONALE
 	user friendly.
 
 SEE ALSO
-	coopgammad(1), gc-tools(7)
+	libcoopgamma.h(0), coopgammad(1), gc-tools(7),
+	libclut(7)
