@@ -1,0 +1,30 @@
+NAME
+	libcoopgamma - Cooperative gamma library
+
+DESCRIPTION
+	libcoopgamma is a C library that enables programs
+	to communicate with coopgammad(1), and eventually
+	mds-coopgamma(1). The advantage of using
+	libcoopgamma over directly communicating with the
+	display server is you get support for multiple
+	display servers transparently (just like with
+	libgamma(7)), more importantly, all programs that
+	use libcoopgamma can change the gamma ramps without
+	overriding each others changes, they add their
+	own filters. Filters are ordered by their selected
+	priority and chained together by the cooperative
+	gamma server (coopgammad(1) or mds-coopgamma(1))
+	and the result is applied. A third advantage is
+	that you can choose when the filter shall be
+	removed, this can either be not until it is
+	explicitly requested, or until the client that add
+	(or lasted modified) the filter disconnects from
+	the server or when explicitly requested, whichever
+	comes first.
+
+RATIONALE
+	One program cannot do everything and still be
+	user friendly.
+
+SEE ALSO
+	coopgammad(1), gc-tools(7)
