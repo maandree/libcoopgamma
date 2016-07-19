@@ -1126,7 +1126,7 @@ static char* libcoopgamma_query(const char* restrict method, const char* restric
 	goto fail;
       if (status)
 	{
-	  errno = EPIPE;
+	  errno = INVAL;
 	  if ((n == sizeof(int)) && (*(int*)msg != 0))
 	    errno = *(int*)msg;
 	}
