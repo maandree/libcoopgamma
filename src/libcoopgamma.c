@@ -2235,7 +2235,7 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict table,
 	goto fail;
       table->filters->priority = 0;
       table->filters->class = NULL;
-      if ((libcoopgamma_ramps_initialise)(&(table->filters->ramps), width) < 0)
+      if (libcoopgamma_ramps_initialise_(&(table->filters->ramps), width) < 0)
 	goto fail;
       memcpy(table->filters->ramps.u8.red, payload, clutsize);
     }
@@ -2261,7 +2261,7 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict table,
 	  off += len;
 	  if (off + clutsize > n)
 	    goto bad;
-	  if ((libcoopgamma_ramps_initialise)(&(table->filters[i].ramps), width) < 0)
+	  if (libcoopgamma_ramps_initialise_(&(table->filters[i].ramps), width) < 0)
 	    goto fail;
 	  memcpy(table->filters->ramps.u8.red, payload + off, clutsize);
 	  off += clutsize;
