@@ -27,6 +27,16 @@ either be not until it is explicitly requested, or until
 the client that add (or lasted modified) the filter
 disconnects from the server or when explicitly requested,
 whichever comes first.
+.P
+.B libcoopgamma
+prints warnings and errors, that cannot be returned,
+to stderr. It is preferred that you have a non-static
+.I "char *"
+with the name
+.I argv0
+where the name of the process
+.RI ( argv[0] )
+is stored.
 .SH "RATIONALE"
 One program cannot do everything and still be user friendly.
 .SH "SEE ALSO"
