@@ -1,0 +1,82 @@
+.TH LIBCOOPGAMMA_GET_SOCKET_FILE 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_get_socket_file - Get the socket file of the coopgamma server
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+char *libcoopgamma_get_socket_file(const char *restrict \fImethod\fP, const char *restrict \fIsite\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_get_socket_file ()
+function consults
+.BR coopgammad (1)
+to get the pathname of the socket for
+communicating with the
+.BR coopgammad (1)
+instance for the selected adjustment
+.I method
+and
+.IR site .
+If
+.I method
+or
+.I site
+is
+.IR NULL ,
+the it will selected automatically.
+.P
+For the duration of the function call,
+.I SIGCHLD
+most neither be ignored nor blocked. It is the
+user of this library's responsibility to ensure
+this. The
+.BR libcoopgamma_get_socket_file ()
+function will not temporarily reset handling of
+.I SIGCHLD
+itself.
+.SH "RETURN VALUES"
+The
+.BR libcoopgamma_get_socket_file ()
+function the pathname of the PID file on success.
+Success does not mean that the server has the
+running at the moment. The user should free
+the returned pointer. On error,
+.I NULL
+is returned and
+.I errno
+is set appropriately.
+.SH "ERRORS"
+The
+.BR libcoopgamma_get_socket_file ()
+function may fail for any reason specified for
+.BR pipe (3),
+.BR fork (3),
+.BR dup2 (3),
+.BR execvp (3),
+.BR malloc (3),
+.BR realloc (3),
+.BR read (3)
+(other than
+.IR EINTR ),
+and
+.BR waitpid (3).
+The function may also fail for any of the
+following reasons:
+.TP
+.B EINVAL
+If
+.I method
+contain an invalid adjustment method name.
+.TP
+.B EBADMSG
+.BR coopgammad (1)
+output invalid data to stdout.
+.SH "SEE ALSO"
+.BR libcoopgamma_get_methods (3),
+.BR libcoopgamma_get_pid_file (3),
+.BR libcoopgamma_connect (3)
