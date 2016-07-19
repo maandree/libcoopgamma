@@ -385,4 +385,18 @@ with alias
 .I libcoopgamma_async_context_t.
 This structure has only internal members.
 .SH "SEE ALSO"
-.BR libcoopgamma (7)
+.BR libcoopgamma (7),
+.BR libcoopgamma_ramps_initialise (3),
+.BR libcoopgamma_filter_initialise (3),
+.BR libcoopgamma_crtc_info_initialise (3),
+.BR libcoopgamma_filter_query_initialise (3),
+.BR libcoopgamma_queried_filter_initialise (3),
+.BR libcoopgamma_filter_table_initialise (3),
+.BR libcoopgamma_error_initialise (3),
+.BR libcoopgamma_context_initialise (3),
+.BR libcoopgamma_async_context_initialise (3),
+.BR libcoopgamma_get_methods (3),
+.BR libcoopgamma_get_method_and_site (3),
+.BR libcoopgamma_get_pid_file (3),
+.BR libcoopgamma_get_socket_file (3),
+.BR libcoopgamma_connect (3)
