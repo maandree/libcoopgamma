@@ -52,6 +52,9 @@ const char* argv0 __attribute__((weak)) = "libcoopgamma";
 #define SUBBUF  \
   (buf ? buf + off : NULL)
 
+#define NNSUBBUF  \
+  (buf + off)
+
 #define MARSHAL_PROLOGUE	\
   char* restrict buf = vbuf;	\
   size_t off = 0;
@@ -345,12 +348,12 @@ int libcoopgamma_filter_unmarshal(libcoopgamma_filter_t* restrict this,
   unmarshal_prim(this->lifespan, libcoopgamma_lifespan_t);
   switch (this->depth)
     {
-    case LIBCOOPGAMMA_UINT8:   r = libcoopgamma_ramps_unmarshal(&(this->ramps.u8),  SUBBUF, &n);  break;
-    case LIBCOOPGAMMA_UINT16:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.u16), SUBBUF, &n);  break;
-    case LIBCOOPGAMMA_UINT32:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.u32), SUBBUF, &n);  break;
-    case LIBCOOPGAMMA_UINT64:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.u64), SUBBUF, &n);  break;
-    case LIBCOOPGAMMA_FLOAT:   r = libcoopgamma_ramps_unmarshal(&(this->ramps.f),   SUBBUF, &n);  break;
-    case LIBCOOPGAMMA_DOUBLE:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.d),   SUBBUF, &n);  break;
+    case LIBCOOPGAMMA_UINT8:   r = libcoopgamma_ramps_unmarshal(&(this->ramps.u8),  NNSUBBUF, &n);  break;
+    case LIBCOOPGAMMA_UINT16:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.u16), NNSUBBUF, &n);  break;
+    case LIBCOOPGAMMA_UINT32:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.u32), NNSUBBUF, &n);  break;
+    case LIBCOOPGAMMA_UINT64:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.u64), NNSUBBUF, &n);  break;
+    case LIBCOOPGAMMA_FLOAT:   r = libcoopgamma_ramps_unmarshal(&(this->ramps.f),   NNSUBBUF, &n);  break;
+    case LIBCOOPGAMMA_DOUBLE:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.d),   NNSUBBUF, &n);  break;
     default:
       break;
     }
@@ -605,12 +608,12 @@ int libcoopgamma_queried_filter_unmarshal(libcoopgamma_queried_filter_t* restric
   unmarshal_string(this->class);
   switch (depth)
     {
-    case LIBCOOPGAMMA_UINT8:   r = libcoopgamma_ramps_unmarshal(&(this->ramps.u8),  SUBBUF, &n);  break;
-    case LIBCOOPGAMMA_UINT16:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.u16), SUBBUF, &n);  break;
-    case LIBCOOPGAMMA_UINT32:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.u32), SUBBUF, &n);  break;
-    case LIBCOOPGAMMA_UINT64:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.u64), SUBBUF, &n);  break;
-    case LIBCOOPGAMMA_FLOAT:   r = libcoopgamma_ramps_unmarshal(&(this->ramps.f),   SUBBUF, &n);  break;
-    case LIBCOOPGAMMA_DOUBLE:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.d),   SUBBUF, &n);  break;
+    case LIBCOOPGAMMA_UINT8:   r = libcoopgamma_ramps_unmarshal(&(this->ramps.u8),  NNSUBBUF, &n);  break;
+    case LIBCOOPGAMMA_UINT16:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.u16), NNSUBBUF, &n);  break;
+    case LIBCOOPGAMMA_UINT32:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.u32), NNSUBBUF, &n);  break;
+    case LIBCOOPGAMMA_UINT64:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.u64), NNSUBBUF, &n);  break;
+    case LIBCOOPGAMMA_FLOAT:   r = libcoopgamma_ramps_unmarshal(&(this->ramps.f),   NNSUBBUF, &n);  break;
+    case LIBCOOPGAMMA_DOUBLE:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.d),   NNSUBBUF, &n);  break;
     default:
       break;
     }
@@ -707,7 +710,7 @@ int libcoopgamma_filter_table_unmarshal(libcoopgamma_filter_table_t* restrict th
     return LIBCOOPGAMMA_ERRNO_SET;
   for (i = 0; i < fn; i++)
     {
-      r = libcoopgamma_queried_filter_unmarshal(this->filters + i, SUBBUF, &n, this->depth);
+      r = libcoopgamma_queried_filter_unmarshal(this->filters + i, NNSUBBUF, &n, this->depth);
       if (r != LIBCOOPGAMMA_SUCCESS)
 	return r;
       off += n;
@@ -877,7 +880,7 @@ int libcoopgamma_context_unmarshal(libcoopgamma_context_t* restrict this,
   memset(this, 0, sizeof(*this));
   unmarshal_version(LIBCOOPGAMMA_CONTEXT_VERSION);
   unmarshal_prim(this->fd, int);
-  r = libcoopgamma_error_unmarshal(&(this->error), SUBBUF, &n);
+  r = libcoopgamma_error_unmarshal(&(this->error), NNSUBBUF, &n);
   if (r != LIBCOOPGAMMA_SUCCESS)
     return r;
   off += n;
@@ -1946,11 +1949,18 @@ char** libcoopgamma_get_crtcs_sync(libcoopgamma_context_t* restrict ctx)
 int libcoopgamma_get_gamma_info_send(const char* restrict crtc, libcoopgamma_context_t* restrict ctx,
 				     libcoopgamma_async_context_t* restrict async)
 {
+#if defined(__GNUC__) && !defined(__clang__)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wnonnull-compare"
+#endif
   if ((crtc == NULL) || strchr(crtc, '\n'))
     {
       errno = EINVAL;
       goto fail;
     }
+#if defined(__GNUC__) && !defined(__clang__)
+# pragma GCC diagnostic pop
+#endif
   
   async->message_id = ctx->message_id;
   SEND_MESSAGE(ctx, NULL, (size_t)0,
@@ -2108,11 +2118,18 @@ int libcoopgamma_get_gamma_send(libcoopgamma_filter_query_t* restrict query,
 				libcoopgamma_context_t* restrict ctx,
 				libcoopgamma_async_context_t* restrict async)
 {
+#if defined(__GNUC__) && !defined(__clang__)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wnonnull-compare"
+#endif
   if ((query == NULL) || (query->crtc == NULL) || strchr(query->crtc, '\n'))
     {
       errno = EINVAL;
       goto fail;
     }
+#if defined(__GNUC__) && !defined(__clang__)
+# pragma GCC diagnostic pop
+#endif
   
   async->message_id = ctx->message_id;
   async->coalesce = query->coalesce;
@@ -2327,12 +2344,19 @@ int libcoopgamma_set_gamma_send(libcoopgamma_filter_t* restrict filter, libcoopg
   char length  [sizeof("Length: \n")   + 3 * sizeof(size_t) ] = {'\0'};
   size_t payload_size = 0, stopwidth = 0;
   
+#if defined(__GNUC__) && !defined(__clang__)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wnonnull-compare"
+#endif
   if ((filter == NULL) || (filter->crtc == NULL) || strchr(filter->crtc, '\n') ||
       (filter->class == NULL) || strchr(filter->class, '\n'))
     {
       errno = EINVAL;
       goto fail;
     }
+#if defined(__GNUC__) && !defined(__clang__)
+# pragma GCC diagnostic pop
+#endif
   
   switch (filter->lifespan)
     {

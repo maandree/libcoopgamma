@@ -31,6 +31,12 @@
 # pragma GCC diagnostic ignored "-Wdocumentation"
 #endif
 
+#if defined(__GNUC__) && !defined(__clang__)
+# define LIBCOOPGAMMA_GCC_ONLY(...)  __VA_ARGS__
+#else
+# define LIBCOOPGAMMA_GCC_ONLY(...)  /* ignore */
+#endif
+
 
 
 /**
@@ -794,6 +800,7 @@ typedef struct libcoopgamma_async_context
  * @param   width  The `sizeof(*(this->red))`
  * @return         Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_ramps_initialise_(void* restrict, size_t);
 
 /**
@@ -806,6 +813,7 @@ int libcoopgamma_ramps_initialise_(void* restrict, size_t);
  * 
  * @param  this  The record to destroy
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 void libcoopgamma_ramps_destroy(void* restrict);
 
 /**
@@ -819,6 +827,7 @@ void libcoopgamma_ramps_destroy(void* restrict);
  * @return         The number of marshalled bytes, or if `buf == NULL`,
  *                 how many bytes would be marshalled if `buf != NULL`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__(1), __leaf__)))
 size_t libcoopgamma_ramps_marshal_(const void* restrict, void* restrict, size_t);
 
 /**
@@ -832,6 +841,7 @@ size_t libcoopgamma_ramps_marshal_(const void* restrict, void* restrict, size_t)
  * @return         `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                 `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_ramps_unmarshal_(void* restrict, const void* restrict, size_t* restrict, size_t);
 
 
@@ -841,6 +851,7 @@ int libcoopgamma_ramps_unmarshal_(void* restrict, const void* restrict, size_t* 
  * @param   this  The record to initialise
  * @return        Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_filter_initialise(libcoopgamma_filter_t* restrict);
 
 /**
@@ -852,6 +863,7 @@ int libcoopgamma_filter_initialise(libcoopgamma_filter_t* restrict);
  * 
  * @param  this  The record to destroy
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 void libcoopgamma_filter_destroy(libcoopgamma_filter_t* restrict);
 
 /**
@@ -863,6 +875,7 @@ void libcoopgamma_filter_destroy(libcoopgamma_filter_t* restrict);
  * @return        The number of marshalled bytes, or if `buf == NULL`,
  *                how many bytes would be marshalled if `buf != NULL`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__(1))))
 size_t libcoopgamma_filter_marshal(const libcoopgamma_filter_t* restrict, void* restrict);
 
 /**
@@ -874,6 +887,7 @@ size_t libcoopgamma_filter_marshal(const libcoopgamma_filter_t* restrict, void* 
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 int libcoopgamma_filter_unmarshal(libcoopgamma_filter_t* restrict, const void* restrict, size_t* restrict);
 
 
@@ -883,6 +897,7 @@ int libcoopgamma_filter_unmarshal(libcoopgamma_filter_t* restrict, const void* r
  * @param   this  The record to initialise
  * @return        Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_crtc_info_initialise(libcoopgamma_crtc_info_t* restrict);
 
 /**
@@ -894,6 +909,7 @@ int libcoopgamma_crtc_info_initialise(libcoopgamma_crtc_info_t* restrict);
  * 
  * @param  this  The record to destroy
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 void libcoopgamma_crtc_info_destroy(libcoopgamma_crtc_info_t* restrict);
 
 /**
@@ -905,6 +921,7 @@ void libcoopgamma_crtc_info_destroy(libcoopgamma_crtc_info_t* restrict);
  * @return        The number of marshalled bytes, or if `buf == NULL`,
  *                how many bytes would be marshalled if `buf != NULL`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__(1), __leaf__)))
 size_t libcoopgamma_crtc_info_marshal(const libcoopgamma_crtc_info_t* restrict, void* restrict);
 
 /**
@@ -916,6 +933,7 @@ size_t libcoopgamma_crtc_info_marshal(const libcoopgamma_crtc_info_t* restrict, 
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_crtc_info_unmarshal(libcoopgamma_crtc_info_t* restrict,
 				     const void* restrict, size_t* restrict);
 
@@ -926,6 +944,7 @@ int libcoopgamma_crtc_info_unmarshal(libcoopgamma_crtc_info_t* restrict,
  * @param   this  The record to initialise
  * @return        Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_filter_query_initialise(libcoopgamma_filter_query_t* restrict);
 
 /**
@@ -937,6 +956,7 @@ int libcoopgamma_filter_query_initialise(libcoopgamma_filter_query_t* restrict);
  * 
  * @param  this  The record to destroy
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 void libcoopgamma_filter_query_destroy(libcoopgamma_filter_query_t* restrict);
 
 /**
@@ -948,6 +968,7 @@ void libcoopgamma_filter_query_destroy(libcoopgamma_filter_query_t* restrict);
  * @return        The number of marshalled bytes, or if `buf == NULL`,
  *                how many bytes would be marshalled if `buf != NULL`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__(1), __leaf__)))
 size_t libcoopgamma_filter_query_marshal(const libcoopgamma_filter_query_t* restrict, void* restrict);
 
 /**
@@ -959,6 +980,7 @@ size_t libcoopgamma_filter_query_marshal(const libcoopgamma_filter_query_t* rest
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_filter_query_unmarshal(libcoopgamma_filter_query_t* restrict,
 					const void* restrict, size_t* restrict);
 
@@ -969,6 +991,7 @@ int libcoopgamma_filter_query_unmarshal(libcoopgamma_filter_query_t* restrict,
  * @param   this  The record to initialise
  * @return        Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_queried_filter_initialise(libcoopgamma_queried_filter_t* restrict);
 
 /**
@@ -980,6 +1003,7 @@ int libcoopgamma_queried_filter_initialise(libcoopgamma_queried_filter_t* restri
  * 
  * @param  this  The record to destroy
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 void libcoopgamma_queried_filter_destroy(libcoopgamma_queried_filter_t* restrict);
 
 /**
@@ -992,6 +1016,7 @@ void libcoopgamma_queried_filter_destroy(libcoopgamma_queried_filter_t* restrict
  * @return         The number of marshalled bytes, or if `buf == NULL`,
  *                 how many bytes would be marshalled if `buf != NULL`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__(1))))
 size_t libcoopgamma_queried_filter_marshal(const libcoopgamma_queried_filter_t* restrict, void* restrict,
 					   libcoopgamma_depth_t);
 
@@ -1005,6 +1030,7 @@ size_t libcoopgamma_queried_filter_marshal(const libcoopgamma_queried_filter_t* 
  * @return         `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                 `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 int libcoopgamma_queried_filter_unmarshal(libcoopgamma_queried_filter_t* restrict,
 					  const void* restrict, size_t* restrict, libcoopgamma_depth_t);
 
@@ -1015,6 +1041,7 @@ int libcoopgamma_queried_filter_unmarshal(libcoopgamma_queried_filter_t* restric
  * @param   this  The record to initialise
  * @return        Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_filter_table_initialise(libcoopgamma_filter_table_t* restrict);
 
 /**
@@ -1026,6 +1053,7 @@ int libcoopgamma_filter_table_initialise(libcoopgamma_filter_table_t* restrict);
  * 
  * @param  this  The record to destroy
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 void libcoopgamma_filter_table_destroy(libcoopgamma_filter_table_t* restrict);
 
 /**
@@ -1037,6 +1065,7 @@ void libcoopgamma_filter_table_destroy(libcoopgamma_filter_table_t* restrict);
  * @return        The number of marshalled bytes, or if `buf == NULL`,
  *                how many bytes would be marshalled if `buf != NULL`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__(1))))
 size_t libcoopgamma_filter_table_marshal(const libcoopgamma_filter_table_t* restrict, void* restrict);
 
 /**
@@ -1048,6 +1077,7 @@ size_t libcoopgamma_filter_table_marshal(const libcoopgamma_filter_table_t* rest
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 int libcoopgamma_filter_table_unmarshal(libcoopgamma_filter_table_t* restrict,
 					const void* restrict, size_t* restrict);
 
@@ -1058,6 +1088,7 @@ int libcoopgamma_filter_table_unmarshal(libcoopgamma_filter_table_t* restrict,
  * @param   this  The record to initialise
  * @return        Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_error_initialise(libcoopgamma_error_t* restrict);
 
 /**
@@ -1069,6 +1100,7 @@ int libcoopgamma_error_initialise(libcoopgamma_error_t* restrict);
  * 
  * @param  this  The record to destroy
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 void libcoopgamma_error_destroy(libcoopgamma_error_t* restrict);
 
 /**
@@ -1080,6 +1112,7 @@ void libcoopgamma_error_destroy(libcoopgamma_error_t* restrict);
  * @return        The number of marshalled bytes, or if `buf == NULL`,
  *                how many bytes would be marshalled if `buf != NULL`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__(1), __leaf__)))
 size_t libcoopgamma_error_marshal(const libcoopgamma_error_t* restrict, void* restrict);
 
 /**
@@ -1091,6 +1124,7 @@ size_t libcoopgamma_error_marshal(const libcoopgamma_error_t* restrict, void* re
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_error_unmarshal(libcoopgamma_error_t* restrict, const void* restrict, size_t* restrict);
 
 
@@ -1100,6 +1134,7 @@ int libcoopgamma_error_unmarshal(libcoopgamma_error_t* restrict, const void* res
  * @param   this  The record to initialise
  * @return        Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_context_initialise(libcoopgamma_context_t* restrict);
 
 /**
@@ -1112,6 +1147,7 @@ int libcoopgamma_context_initialise(libcoopgamma_context_t* restrict);
  * @param  this        The record to destroy
  * @param  disconnect  Disconnect from the server?
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 void libcoopgamma_context_destroy(libcoopgamma_context_t* restrict, int);
 
 /**
@@ -1123,6 +1159,7 @@ void libcoopgamma_context_destroy(libcoopgamma_context_t* restrict, int);
  * @return        The number of marshalled bytes, or if `buf == NULL`,
  *                how many bytes would be marshalled if `buf != NULL`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__(1))))
 size_t libcoopgamma_context_marshal(const libcoopgamma_context_t* restrict, void* restrict);
 
 /**
@@ -1134,6 +1171,7 @@ size_t libcoopgamma_context_marshal(const libcoopgamma_context_t* restrict, void
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 int libcoopgamma_context_unmarshal(libcoopgamma_context_t* restrict, const void* restrict, size_t* restrict);
 
 
@@ -1143,6 +1181,7 @@ int libcoopgamma_context_unmarshal(libcoopgamma_context_t* restrict, const void*
  * @param   this  The record to initialise
  * @return        Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_async_context_initialise(libcoopgamma_async_context_t* restrict);
 
 /**
@@ -1154,6 +1193,7 @@ int libcoopgamma_async_context_initialise(libcoopgamma_async_context_t* restrict
  * 
  * @param  this  The record to destroy
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 void libcoopgamma_async_context_destroy(libcoopgamma_async_context_t* restrict);
 
 /**
@@ -1165,6 +1205,7 @@ void libcoopgamma_async_context_destroy(libcoopgamma_async_context_t* restrict);
  * @return        The number of marshalled bytes, or if `buf == NULL`,
  *                how many bytes would be marshalled if `buf != NULL`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__(1), __leaf__)))
 size_t libcoopgamma_async_context_marshal(const libcoopgamma_async_context_t* restrict, void* restrict);
 
 /**
@@ -1176,6 +1217,7 @@ size_t libcoopgamma_async_context_marshal(const libcoopgamma_async_context_t* re
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_async_context_unmarshal(libcoopgamma_async_context_t* restrict, const void* restrict,
 					 size_t* restrict);
 
@@ -1189,6 +1231,7 @@ int libcoopgamma_async_context_unmarshal(libcoopgamma_async_context_t* restrict,
  *          the outer pointer, inner pointers are subpointers of the
  *          outer pointer and cannot be freed. `NULL` on error.
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__malloc__)))
 char** libcoopgamma_get_methods(void);
 
 /**
@@ -1222,6 +1265,7 @@ int libcoopgamma_get_method_and_site(const char* restrict, const char* restrict,
  *                   or if there server does not use PID files. The later
  *                   case is detected by checking that `errno` is set to 0.
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__malloc__)))
 char* libcoopgamma_get_pid_file(const char* restrict, const char* restrict);
 
 /**
@@ -1237,6 +1281,7 @@ char* libcoopgamma_get_pid_file(const char* restrict, const char* restrict);
  *                   and is the case when communicating with a server in a
  *                   multi-server display server like mds.
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__malloc__)))
 char* libcoopgamma_get_socket_file(const char* restrict, const char* restrict);
 
 
@@ -1253,6 +1298,7 @@ char* libcoopgamma_get_socket_file(const char* restrict, const char* restrict);
  * @return          Zero on success, -1 on error. On error, `errno` is set
  *                  to 0 if the server could not be initialised.
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__(3))))
 int libcoopgamma_connect(const char* restrict, const char* restrict, libcoopgamma_context_t* restrict);
 
 /**
@@ -1270,6 +1316,7 @@ int libcoopgamma_connect(const char* restrict, const char* restrict, libcoopgamm
  * @param   nonblocking  Nonblocking mode?
  * @return               Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_set_nonblocking(libcoopgamma_context_t* restrict, int);
 
 /**
@@ -1284,6 +1331,7 @@ int libcoopgamma_set_nonblocking(libcoopgamma_context_t* restrict, int);
  * @param   ctx  The state of the library, must be connected
  * @return       Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_flush(libcoopgamma_context_t* restrict);
 
 /**
@@ -1304,6 +1352,7 @@ int libcoopgamma_flush(libcoopgamma_context_t* restrict);
  *                    if it is set to `ENOTRECOVERABLE` you have receive a corrupt
  *                    message and the context has been tainted beyond recover.
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_synchronise(libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict,
 			     size_t, size_t* restrict);
 
@@ -1318,6 +1367,7 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict, libcoopgamma_asyn
  *                 identify and parse the response, is stored here
  * @return         Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 int libcoopgamma_get_crtcs_send(libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict);
 
 /**
@@ -1331,6 +1381,7 @@ int libcoopgamma_get_crtcs_send(libcoopgamma_context_t* restrict, libcoopgamma_a
  *                 which case `ctx->error` (rather than `errno`) is read
  *                 for information about the error.
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__malloc__, __nonnull__)))
 char** libcoopgamma_get_crtcs_recv(libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict);
 
 /**
@@ -1350,6 +1401,7 @@ char** libcoopgamma_get_crtcs_recv(libcoopgamma_context_t* restrict, libcoopgamm
  *               which case `ctx->error` (rather than `errno`) is read
  *               for information about the error.
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__malloc__, __nonnull__)))
 char** libcoopgamma_get_crtcs_sync(libcoopgamma_context_t* restrict);
 
 
@@ -1364,6 +1416,7 @@ char** libcoopgamma_get_crtcs_sync(libcoopgamma_context_t* restrict);
  *                 identify and parse the response, is stored here
  * @return         Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 int libcoopgamma_get_gamma_info_send(const char* restrict, libcoopgamma_context_t* restrict,
 				     libcoopgamma_async_context_t* restrict);
 
@@ -1376,6 +1429,7 @@ int libcoopgamma_get_gamma_info_send(const char* restrict, libcoopgamma_context_
  * @return         Zero on success, -1 on error, in which case `ctx->error`
  *                 (rather than `errno`) is read for information about the error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 int libcoopgamma_get_gamma_info_recv(libcoopgamma_crtc_info_t* restrict, libcoopgamma_context_t* restrict,
 				     libcoopgamma_async_context_t* restrict);
 
@@ -1395,6 +1449,7 @@ int libcoopgamma_get_gamma_info_recv(libcoopgamma_crtc_info_t* restrict, libcoop
  * @return         Zero on success, -1 on error, in which case `ctx->error`
  *                 (rather than `errno`) is read for information about the error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 int libcoopgamma_get_gamma_info_sync(const char* restrict, libcoopgamma_crtc_info_t* restrict,
 				     libcoopgamma_context_t* restrict);
 
@@ -1410,6 +1465,7 @@ int libcoopgamma_get_gamma_info_sync(const char* restrict, libcoopgamma_crtc_inf
  *                 identify and parse the response, is stored here
  * @return         Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 int libcoopgamma_get_gamma_send(libcoopgamma_filter_query_t* restrict, libcoopgamma_context_t* restrict,
 				libcoopgamma_async_context_t* restrict);
 
@@ -1422,6 +1478,7 @@ int libcoopgamma_get_gamma_send(libcoopgamma_filter_query_t* restrict, libcoopga
  * @return         Zero on success, -1 on error, in which case `ctx->error`
  *                 (rather than `errno`) is read for information about the error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict, libcoopgamma_context_t* restrict,
 				libcoopgamma_async_context_t* restrict);
 
@@ -1441,6 +1498,7 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict, libcoopga
  * @return         Zero on success, -1 on error, in which case `ctx->error`
  *                 (rather than `errno`) is read for information about the error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 int libcoopgamma_get_gamma_sync(libcoopgamma_filter_query_t* restrict, libcoopgamma_filter_table_t* restrict,
 				libcoopgamma_context_t* restrict);
 
@@ -1457,6 +1515,7 @@ int libcoopgamma_get_gamma_sync(libcoopgamma_filter_query_t* restrict, libcoopga
  *                  identify and parse the response, is stored here
  * @return          Zero on success, -1 on error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 int libcoopgamma_set_gamma_send(libcoopgamma_filter_t* restrict, libcoopgamma_depth_t,
 				libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict);
 
@@ -1468,6 +1527,7 @@ int libcoopgamma_set_gamma_send(libcoopgamma_filter_t* restrict, libcoopgamma_de
  * @return         Zero on success, -1 on error, in which case `ctx->error`
  *                 (rather than `errno`) is read for information about the error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 int libcoopgamma_set_gamma_recv(libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict);
 
 /**
@@ -1486,6 +1546,7 @@ int libcoopgamma_set_gamma_recv(libcoopgamma_context_t* restrict, libcoopgamma_a
  * @return          Zero on success, -1 on error, in which case `ctx->error`
  *                  (rather than `errno`) is read for information about the error
  */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
 int libcoopgamma_set_gamma_sync(libcoopgamma_filter_t* restrict, libcoopgamma_depth_t,
 				libcoopgamma_context_t* restrict);
 
@@ -1494,6 +1555,8 @@ int libcoopgamma_set_gamma_sync(libcoopgamma_filter_t* restrict, libcoopgamma_de
 #if defined(__clang__)
 # pragma GCC diagnostic pop
 #endif
+
+#undef LIBCOOPGAMMA_GCC_ONLY
 
 
 
