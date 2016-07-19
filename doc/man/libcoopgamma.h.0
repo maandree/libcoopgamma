@@ -1,4 +1,4 @@
-.TH LIBCOOPGAMMA 7 LIBCOOPGAMMA
+.TH LIBCOOPGAMMA.H 0 LIBCOOPGAMMA
 .SH "NAME"
 libcoopgamma.h - Cooperative gamma library header
 .SH "SYNOPSIS"

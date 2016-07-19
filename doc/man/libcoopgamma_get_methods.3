@@ -1,0 +1,61 @@
+.TH LIBCOOPGAMMA_GET_METHODS 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_get_methods - List all recognised adjustment method
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+char** libcoopgamma_get_methods(void);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_get_methods ()
+function consults
+.BR coopgammad (1)
+to construct a list of all adjustment method name
+recognised by
+.BR coopgammad (1).
+.P
+For the duration of the function call,
+.I SIGCHLD
+most neither be ignored nor blocked. It is the
+user of this library's responsibility to ensure
+this. The
+.BR libcoopgamma_get_methods ()
+function will not temporarily reset handling of
+.I SIGCHLD
+itself.
+.SH "RETURN VALUES"
+The
+.BR libcoopgamma_get_methods ()
+function returns a list of recognised
+adjustment method name. The list is terminated
+by a
+.I NULL
+element and will contain no other
+.I NULL
+elements. Elements in the list are subpointers
+of the returned pointer and most not be freed.
+The user shall however free the returned pointer,
+effectively freeing all elements stored in the list.
+On error,
+.I NULL
+is returned and
+.I errno
+is set appropriately.
+.SH "ERRORS"
+The
+.BR libcoopgamma_get_methods ()
+function may fail for any reason specified for
+.BR malloc (3),
+.BR realloc (3),
+and
+.BR libcoopgamma_get_method_and_site (3).
+.SH "SEE ALSO"
+.BR libcoopgamma_get_method_and_site (3),
+.BR libcoopgamma_get_pid_file (3),
+.BR libcoopgamma_get_socket_file (3),
+.BR libcoopgamma_connect (3)
