@@ -1,0 +1,99 @@
+.TH LIBCOOPGAMMA_GET_METHOD_AND_SITE 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_get_method_and_site - Get the adjustment method and site
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+int libcoopgamma_get_method_and_site(const char *restrict \fImethod\fP, const char *restrict \fIsite\fP,
+                                     char **restrict \fImethodp\fP, char **restrict \fIsitep\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_get_method_and_site ()
+function consults
+.BR coopgammad (1)
+to get the names the selected adjustment
+.I method
+and
+.IR site .
+If
+.I method
+or
+.I site
+is
+.IR NULL ,
+the it will selected automatically.
+.P
+The name of selected adjustment method is
+stored in
+.I *methodp
+unless
+.I methodp
+is
+.IR NULL .
+If the selected selected adjustment method does
+not exist, the function fail unless the given
+.I method
+.P
+The name of selected site is stored in
+.I *sitep
+unless
+.I sitep
+is
+.IR NULL .
+is a positive number.
+.P
+The user should free
+.I *methodp
+and
+.IR *sitep .
+.P
+For the duration of the function call,
+.I SIGCHLD
+most neither be ignored nor blocked. It is the
+user of this library's responsibility to ensure
+this. The
+.BR libcoopgamma_get_method_and_site ()
+function will not temporarily reset handling of
+.I SIGCHLD
+itself.
+.SH "RETURN VALUES"
+The
+.BR libcoopgamma_get_method_and_site ()
+function returns 0 on success. On error, -1
+is returned and -1 is set appropriately.
+.SH "ERRORS"
+The
+.BR libcoopgamma_get_method_and_site ()
+function may fail for any reason specified for
+.BR pipe (3),
+.BR fork (3),
+.BR dup2 (3),
+.BR execvp (3),
+.BR malloc (3),
+.BR realloc (3),
+.BR read (3)
+(other than
+.IR EINTR ),
+and
+.BR waitpid (3).
+The function may also fail for any of the
+following reasons:
+.TP
+.B EINVAL
+If
+.I method
+contain an invalid adjustment method name.
+.TP
+.B EBADMSG
+.BR coopgammad (1)
+output invalid data to stdout.
+.SH "SEE ALSO"
+.BR libcoopgamma_get_methods (3),
+.BR libcoopgamma_get_pid_file (3),
+.BR libcoopgamma_get_socket_file (3),
+.BR libcoopgamma_connect (3)
