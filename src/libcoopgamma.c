@@ -172,7 +172,7 @@ resync:									\
  * @param   width  The `sizeof(*(this->red))`
  * @return         Zero on success, -1 on error
  */
-int (libcoopgamma_ramps_initialise)(void* restrict this, size_t width)
+int libcoopgamma_ramps_initialise_(void* restrict this, size_t width)
 {
   libcoopgamma_ramps8_t* restrict this8 = (libcoopgamma_ramps8_t* restrict)this;
   this8->red = this8->green = this8->blue = NULL;
@@ -214,7 +214,7 @@ void libcoopgamma_ramps_destroy(void* restrict this)
  * @return         The number of marshalled bytes, or if `buf == NULL`,
  *                 how many bytes would be marshalled if `buf != NULL`
  */
-size_t (libcoopgamma_ramps_marshal)(const void* restrict this, void* restrict vbuf, size_t width)
+size_t libcoopgamma_ramps_marshal_(const void* restrict this, void* restrict vbuf, size_t width)
 {
   const libcoopgamma_ramps8_t* restrict this8 = (const libcoopgamma_ramps8_t* restrict)this;
   MARSHAL_PROLOGUE;
@@ -238,8 +238,8 @@ size_t (libcoopgamma_ramps_marshal)(const void* restrict this, void* restrict vb
  * @return         `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                 `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
-int (libcoopgamma_ramps_unmarshal)(void* restrict this, const void* restrict vbuf,
-				   size_t* restrict np, size_t width)
+int libcoopgamma_ramps_unmarshal_(void* restrict this, const void* restrict vbuf,
+				  size_t* restrict np, size_t width)
 {
   libcoopgamma_ramps8_t* restrict this8 = (libcoopgamma_ramps8_t* restrict)this;
   UNMARSHAL_PROLOGUE;

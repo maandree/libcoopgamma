@@ -755,7 +755,7 @@ typedef struct libcoopgamma_async_context
  * @return        Zero on success, -1 on error
  */
 #define libcoopgamma_ramps_initialise(this)  \
-  ((libcoopgamma_ramps_initialise)((this), sizeof(*((this)->red))))
+  (libcoopgamma_ramps_initialise_((this), sizeof(*((this)->red))))
 
 /**
  * Marshal a `libcoopgamma_ramps8_t`, `libcoopgamma_ramps16_t`, `libcoopgamma_ramps32_t`,
@@ -768,7 +768,7 @@ typedef struct libcoopgamma_async_context
  *                how many bytes would be marshalled if `buf != NULL`
  */
 #define libcoopgamma_ramps_marshal(this, buf)  \
-  ((libcoopgamma_ramps_marshal)((this), (buf), sizeof(*((this)->red))))
+  (libcoopgamma_ramps_marshal_((this), (buf), sizeof(*((this)->red))))
 
 /**
  * Unmarshal a `libcoopgamma_ramps8_t`, `libcoopgamma_ramps16_t`, `libcoopgamma_ramps32_t`,
@@ -781,7 +781,7 @@ typedef struct libcoopgamma_async_context
  *                `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
 #define libcoopgamma_ramps_unmarshal(this, buf, n)  \
-  ((libcoopgamma_ramps_unmarshal)((this), (buf), (n), sizeof(*((this)->red))))
+  (libcoopgamma_ramps_unmarshal_((this), (buf), (n), sizeof(*((this)->red))))
 
 
 /**
@@ -794,7 +794,7 @@ typedef struct libcoopgamma_async_context
  * @param   width  The `sizeof(*(this->red))`
  * @return         Zero on success, -1 on error
  */
-int (libcoopgamma_ramps_initialise)(void* restrict, size_t);
+int libcoopgamma_ramps_initialise_(void* restrict, size_t);
 
 /**
  * Release all resources allocated to  a `libcoopgamma_ramps8_t`, `libcoopgamma_ramps16_t`,
@@ -819,7 +819,7 @@ void libcoopgamma_ramps_destroy(void* restrict);
  * @return         The number of marshalled bytes, or if `buf == NULL`,
  *                 how many bytes would be marshalled if `buf != NULL`
  */
-size_t (libcoopgamma_ramps_marshal)(const void* restrict, void* restrict, size_t);
+size_t libcoopgamma_ramps_marshal_(const void* restrict, void* restrict, size_t);
 
 /**
  * Unmarshal a `libcoopgamma_ramps8_t`, `libcoopgamma_ramps16_t`, `libcoopgamma_ramps32_t`,
@@ -832,7 +832,7 @@ size_t (libcoopgamma_ramps_marshal)(const void* restrict, void* restrict, size_t
  * @return         `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
  *                 `LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE`, or `LIBCOOPGAMMA_ERRNO_SET`
  */
-int (libcoopgamma_ramps_unmarshal)(void* restrict, const void* restrict, size_t* restrict, size_t);
+int libcoopgamma_ramps_unmarshal_(void* restrict, const void* restrict, size_t* restrict, size_t);
 
 
 /**
