@@ -1347,11 +1347,12 @@ int libcoopgamma_flush(libcoopgamma_context_t* restrict);
  *                    if the message is corrupt any of the listed requests can
  *                    be selected even if it is not for any of the requests.
  *                    Functions that parse the message will detect such corruption.
- * @return            Zero on success, -1 on error, -2 if the message is ignored
+ * @return            Zero on success, -1 on error. If the the message is ignored,
  *                    which happens if corresponding `libcoopgamma_async_context_t`
- *                    is not listed. If `-1` is returned, `errno` will be set,
- *                    if it is set to `ENOTRECOVERABLE` you have receive a corrupt
- *                    message and the context has been tainted beyond recover.
+ *                    is not listed, -1 is returned and `errno` is set to 0. If -1
+ *                    is returned, `errno` is set to `ENOTRECOVERABLE` you have
+ *                    received a corrupt message and the context has been tainted
+ *                    beyond recover.
  */
 LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
 int libcoopgamma_synchronise(libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict,
