@@ -143,15 +143,10 @@ const char* argv0 __attribute__((weak)) = "libcoopgamma";
 	goto reflush;							\
     }									\
 resync:									\
-  switch (libcoopgamma_synchronise(ctx, &async, (size_t)1, &_selected))	\
+  if (libcoopgamma_synchronise(ctx, &async, (size_t)1, &_selected) < 0)	\
     {									\
-    default:								\
-      break;								\
-    case -1:								\
-      if (errno != EINTR)						\
+      if ((errno != EINTR) && (errno != 0))				\
 	return fail_return;						\
-      /* Fall through */						\
-    case -2:								\
       goto resync;							\
     }									\
   return recv_call
@@ -1482,11 +1477,12 @@ int libcoopgamma_flush(libcoopgamma_context_t* restrict ctx)
  *                    if the message is corrupt any of the listed requests can
  *                    be selected even if it is not for any of the requests.
  *                    Functions that parse the message will detect such corruption.
- * @return            Zero on success, -1 on error, -2 if the message is ignored
+ * @return            Zero on success, -1 on error. If the the message is ignored,
  *                    which happens if corresponding `libcoopgamma_async_context_t`
- *                    is not listed. If `-1` is returned, `errno` will be set,
- *                    if it is set to `ENOTRECOVERABLE` you have receive a corrupt
- *                    message and the context has been tainted beyond recover.
+ *                    is not listed, -1 is returned and `errno` is set to 0. If -1
+ *                    is returned, `errno` is set to `ENOTRECOVERABLE` you have
+ *                    received a corrupt message and the context has been tainted
+ *                    beyond recover.
  */
 int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
 			     libcoopgamma_async_context_t* restrict pending,
@@ -1581,7 +1577,8 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
 	  ctx->have_all_headers = 0;
 	  ctx->length = 0;
 	  ctx->inbound_tail = ctx->curline;
-	  return -2;
+	  errno = 0;
+	  return -1;
 	}
     }
   
