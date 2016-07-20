@@ -1,0 +1,57 @@
+.TH LIBCOOPGAMMA_RAMPS_INITIALISE 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_ramps_initialise - Initialise a member type of libcoopgamma_ramps_t
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+int libcoopgamma_ramps_initialise(void* restrict \fIthis\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_ramps_initialise ()
+function initialises
+.IR this .
+.I this
+must be of any of the following types, and not casted
+to any other type such as
+.I void*
+or
+.IR libcoopgamma_ramps_t:
+.IR libcoopgamma_ramps8_t ,
+.IR libcoopgamma_ramps16_t ,
+.IR libcoopgamma_ramps32_t ,
+.IR libcoopgamma_ramps64_t ,
+.IR libcoopgamma_rampsf_t ,
+or
+.IR libcoopgamma_rampsd_t .
+.P
+The
+.BR libcoopgamma_ramps_initialise ()
+function is defined as a macro.
+.SH "RETURN VALUES"
+The
+.BR libcoopgamma_ramps_initialise ()
+returns 0 on success. On error, -1 is returned and
+.I errno
+is set appropriately.
+.SH "ERRORS"
+The
+.BR libcoopgamma_ramps_initialise ()
+function may fail for any reason specified for
+.BR malloc (3).
+.SH "SEE ALSO"
+.BR libcoopgamma.h (0),
+.BR libcoopgamma_ramps_destroy (3),
+.BR libcoopgamma_ramps_marshal (3),
+.BR libcoopgamma_filter_initialise (3),
+.BR libcoopgamma_crtc_info_initialise (3),
+.BR libcoopgamma_filter_query_initialise (3),
+.BR libcoopgamma_queried_filter_initialise (3),
+.BR libcoopgamma_filter_table_initialise (3),
+.BR libcoopgamma_error_initialise (3),
+.BR libcoopgamma_context_initialise (3),
+.BR libcoopgamma_async_context_initialise (3)
