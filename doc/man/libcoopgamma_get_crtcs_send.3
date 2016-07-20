@@ -1,0 +1,76 @@
+.TH LIBCOOPGAMMA_GET_CRTCS_SEND 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_get_crtcs_send - Send a request for an enumeration of all available CRTC:s
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+int libcoopgamma_get_crtcs_send(libcoopgamma_context_t *restrict \fIctx\fP,
+                                libcoopgamma_async_context_t *restrict \fIasync\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_get_crtcs_send ()
+function sends a request over the connection of
+.I ctx
+to the server for an enumeration of all available
+CRTC:s (roughly, display devices). Information
+about the request is stored in
+.IR *async ,
+this information by
+.BR libcoopgamma_synchronise ()
+to identify the response, and by
+.BR libcoopgamma_get_crtcs_recv ()
+to parse the response.
+.SH "RETURN VALUES"
+The
+.BR libcoopgamma_get_crtcs_send ()
+returns 0 on success. On error, -1 is returned and
+.I errno
+is set appropriately.
+.SH "ERRORS"
+The
+.BR libcoopgamma_get_crtcs_send ()
+function may fail for any reason specified for
+.BR malloc (3),
+.BR realloc (3),
+or
+.BR libcoopgamma_flush (3).
+Particularly interesting exceptional
+conditions, that are not errors proper, include
+those indicated by the following values on
+.IR errno :
+.TP
+.B EINTR
+The function was interrupted by a signal. When
+this happens, call
+.BR libcoopgamma_flush (3)
+to resume.
+.TP
+.BR EAGAIN " or " EWOULDBLOCK
+The communication is nonblocking and the buffer
+between the server and the client is full,
+and no more data can be queued without blocking.
+When this happens, wait a short period of time
+and call
+.BR libcoopgamma_flush (3)
+to resume.
+.BR select (3)
+or similar function can be used to wait until
+.I ctx->fd
+is readable.
+.TP
+.B ECONNREST
+The connection to the server has closed.
+.SH "SEE ALSO"
+.BR libcoopgamma_flush (3),
+.BR libcoopgamma_synchronise (3),
+.BR libcoopgamma_set_nonblocking (3),
+.BR libcoopgamma_get_crtcs_recv (3),
+.BR libcoopgamma_get_crtcs_sync (3),
+.BR libcoopgamma_get_gamma_info_send (3),
+.BR libcoopgamma_get_gamma_send (3),
+.BR libcoopgamma_set_gamma_send (3)
