@@ -5,7 +5,7 @@ libcoopgamma_context_destroy - Deinitialise a libcoopgamma_context_t
 .nf
 #include <libcoopgamma.h>
 
-void libcoopgamma_context_destroy(libcoopgamma_context_t *restrict \fIthis\fP);
+void libcoopgamma_context_destroy(libcoopgamma_context_t *restrict \fIthis\fP, int \fIdisconnect\fP);
 .fi
 .P
 Link with
@@ -20,6 +20,11 @@ The function does however not free the
 allocation of the pointer
 .IR this
 itself.
+.P
+If and only if
+.I disconnect
+is a non-zero value, the function will
+disconnect from the coopgamma server.
 .SH "SEE ALSO"
 .BR libcoopgamma_context_initialise (3),
 .BR libcoopgamma_context_marshal (3),
