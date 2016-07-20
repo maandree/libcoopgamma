@@ -1422,13 +1422,13 @@ int libcoopgamma_connect(const char* restrict method, const char* restrict site,
 int libcoopgamma_set_nonblocking(libcoopgamma_context_t* restrict ctx, int nonblocking)
 {
   int flags = fcntl(ctx->fd, F_GETFL);
+  if (flags == -1)
+    return -1;
   if (nonblocking)
     flags |= O_NONBLOCK;
   else
     flags &= ~O_NONBLOCK;
-  if (fcntl(ctx->fd, F_SETFL, flags) == -1)
-    return -1;
-  return 0;
+  return -(fcntl(ctx->fd, F_SETFL, flags) == -1)
 }
 
 
