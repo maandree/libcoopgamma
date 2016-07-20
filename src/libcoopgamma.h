@@ -805,8 +805,9 @@ int libcoopgamma_ramps_initialise_(void* restrict, size_t);
 
 /**
  * Release all resources allocated to  a `libcoopgamma_ramps8_t`, `libcoopgamma_ramps16_t`,
- * `libcoopgamma_ramps32_t`, `libcoopgamma_ramps64_t`, `libcoopgamma_rampsf_t`, or
- * `libcoopgamma_rampsd_t`, the allocation of the record itself is not freed
+ * `libcoopgamma_ramps32_t`, `libcoopgamma_ramps64_t`, `libcoopgamma_rampsf_t`,
+ * `libcoopgamma_rampsd_t`, or `libcoopgamma_ramps_t`, the allocation of the record
+ * itself is not freed
  * 
  * Always call this function after failed call to `libcoopgamma_ramps_initialise`
  * or failed call to `libcoopgamma_ramps_unmarshal`
