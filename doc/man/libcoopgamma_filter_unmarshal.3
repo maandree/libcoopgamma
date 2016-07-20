@@ -1,0 +1,86 @@
+.TH LIBCOOPGAMMA_FILTER_UNMARSHAL 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_filter_unmarshal - Unmarshal a libcoopgamma_filter_t
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+int libcoopgamma_filter_unmarshal(libcoopgamma_filter_t *restrict \fIthis\fP,
+                                  void *restrict \fIbuffer\fP, size_t *restrict \fIn\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_filter_unmarshal ()
+function unmarshals
+.I this
+from a
+.I buffer .
+The number of read bytes from
+.I buffer
+is stored in
+.I *n
+on success.
+.P
+None if the parameters may be
+.IR NULL .
+.I this
+does not have to be initialised.
+.P
+On failure,
+.I this
+should be deinitialised using
+.BR libcoopgamma_filter_destroy (3).
+.P
+Undefined behaviour is invoked if the
+beginning of
+.I buffer
+does not contain data stored by
+.BR libcoopgamma_filter_marshal (3).
+.SH "RETURN VALUES"
+The
+.BR libcoopgamma_filter_unmarshal ()
+function returns one of the following
+values:
+.TP
+.IR LIBCOOPGAMMA_SUCCESS " (= 0)"
+The function was successful.
+.TP
+.IR LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE " (> 0)"
+The data in
+.I buffer
+was stored by an earlier version of
+.BR libcoopgamma (7)
+that is no longer supported.
+.TP
+.IR LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE " (> 0)"
+The data in
+.I buffer
+was stored by a newer version of
+.BR libcoopgamma (7)
+that stores the data in an incompatible format.
+.TP
+.IR LIBCOOPGAMMA_ERRNO_SET "(= -1)"
+An other error was encountered.
+.I errno
+has been set appropriately.
+.SH "ERROR"
+The
+.BR libcoopgamma_filter_marshal ()
+function may fail, and returned
+.I LIBCOOPGAMMA_ERRNO_SET
+for any reason specified for
+.BR malloc (3).
+.SH "SEE ALSO"
+.BR libcoopgamma_filter_destroy (3),
+.BR libcoopgamma_filter_marshal (3),
+.BR libcoopgamma_ramps_unmarshal (3),
+.BR libcoopgamma_crtc_info_unmarshal (3),
+.BR libcoopgamma_filter_query_unmarshal (3),
+.BR libcoopgamma_queried_filter_unmarshal (3),
+.BR libcoopgamma_filter_table_unmarshal (3),
+.BR libcoopgamma_error_unmarshal (3),
+.BR libcoopgamma_context_unmarshal (3),
+.BR libcoopgamma_async_context_unmarshal (3)
