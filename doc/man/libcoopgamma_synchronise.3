@@ -1,0 +1,93 @@
+.TH LIBCOOPGAMMA_SYNCHRONISE 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_synchronise - Wait for the next message to be received
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+int libcoopgamma_synchronise(libcoopgamma_context_t *restrict \fIctx\fP,
+                             libcoopgamma_async_context_t *restrict \fIpending\fP,
+                             size_t \fIn\fP, size_t *restrict \fIselected\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_synchronise ()
+function waits until the next message for
+.I ctx
+to be received and selects the context for the
+asynchronous call for which the received message
+is a response.
+.I pending
+shall list thes contexts for all pending asynchronous
+call. The number of pending asynchronous call shall be
+passed to the function via the
+.I n
+parameter. Once a full message as been received
+.I *selected
+is set to the index of the context in
+.I pending
+representing the context for the asynchronous call
+to which the received message is a response.
+.SH "RETURN VALUES"
+The
+.BR libcoopgamma_synchronise ()
+returns 0 on success. On error, -1 is returned and
+.I errno
+is set appropriately.
+.SH "ERRORS"
+The
+.BR libcoopgamma_synchronise ()
+function may fail for any reason specified for
+.BR realloc (3),
+or
+.BR recv (3).
+Particularly interesting exceptional
+conditions, that are not errors proper, include
+those indicated by the following values on
+.IR errno :
+.TP
+.B EINTR
+The function was interrupted by a signal. When
+this happens, just resume be calling the functon
+again.
+.TP
+.BR EAGAIN " or " EWOULDBLOCK
+The communication is nonblocking and no more
+data is ready to be read, the buffer between
+the server and the client has been depleted,
+When this happens, wait a short period of time
+and call the function again to resume.
+.BR select (3)
+or similar function can be used to wait until
+.I ctx->fd
+is readable.
+.TP
+.B ECONNREST
+The connection to the server has closed.
+.SH "SEE ALSO"
+.P
+The function may also fail for the following reasons:
+.TP
+.B EBADMSG
+A corrupt message has been received. Call the
+function again to ge the next message.
+.TP
+.B ENOTRECOVERABLE
+A corrupt message has been received. The corruption
+is too severe for recovery. You may either exit
+or disconnection and connection again.
+.TP
+0
+The receive message does not match any of the
+.I n
+first contexts in
+.IR pending .
+.BR libcoopgamma_flush (3),
+.BR libcoopgamma_set_nonblocking (3),
+.BR libcoopgamma_get_crtcs_recv (3),
+.BR libcoopgamma_get_gamma_info_recv (3),
+.BR libcoopgamma_get_gamma_recv (3),
+.BR libcoopgamma_set_gamma_recv (3)
