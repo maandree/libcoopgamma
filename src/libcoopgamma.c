@@ -235,7 +235,7 @@ size_t libcoopgamma_ramps_marshal_(const void* restrict this, void* restrict vbu
  * Unmarshal a `libcoopgamma_ramps8_t`, `libcoopgamma_ramps16_t`, `libcoopgamma_ramps32_t`,
  * `libcoopgamma_ramps64_t`, `libcoopgamma_rampsf_t`, or `libcoopgamma_rampsd_t` from a buffer
  * 
- * @param   this   The output paramater for unmarshalled record
+ * @param   this   The output parameter for unmarshalled record
  * @param   vbuf   The buffer with the marshalled record
  * @param   np     Output parameter for the number of unmarshalled bytes, undefined on failure
  * @param   width  The `sizeof(*(this->red))`
@@ -326,7 +326,7 @@ size_t libcoopgamma_filter_marshal(const libcoopgamma_filter_t* restrict this, v
 /**
  * Unmarshal a `libcoopgamma_filter_t` from a buffer
  * 
- * @param   this  The output paramater for unmarshalled record
+ * @param   this  The output parameter for unmarshalled record
  * @param   vbuf  The buffer with the marshalled record
  * @param   np    Output parameter for the number of unmarshalled bytes, undefined on failure
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
@@ -425,7 +425,7 @@ size_t libcoopgamma_crtc_info_marshal(const libcoopgamma_crtc_info_t* restrict t
 /**
  * Unmarshal a `libcoopgamma_crtc_info_t` from a buffer
  * 
- * @param   this  The output paramater for unmarshalled record
+ * @param   this  The output parameter for unmarshalled record
  * @param   vbuf  The buffer with the marshalled record
  * @param   np    Output parameter for the number of unmarshalled bytes, undefined on failure
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
@@ -504,7 +504,7 @@ size_t libcoopgamma_filter_query_marshal(const libcoopgamma_filter_query_t* rest
 /**
  * Unmarshal a `libcoopgamma_filter_query_t` from a buffer
  * 
- * @param   this  The output paramater for unmarshalled record
+ * @param   this  The output parameter for unmarshalled record
  * @param   vbuf  The buffer with the marshalled record
  * @param   np    Output parameter for the number of unmarshalled bytes, undefined on failure
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
@@ -589,7 +589,7 @@ size_t libcoopgamma_queried_filter_marshal(const libcoopgamma_queried_filter_t* 
 /**
  * Unmarshal a `libcoopgamma_queried_filter_t` from a buffer
  * 
- * @param   this   The output paramater for unmarshalled record
+ * @param   this   The output parameter for unmarshalled record
  * @param   vbuf   The buffer with the marshalled record
  * @param   np     Output parameter for the number of unmarshalled bytes, undefined on failure
  * @param   depth  The type used of ramp stops
@@ -685,7 +685,7 @@ size_t libcoopgamma_filter_table_marshal(const libcoopgamma_filter_table_t* rest
 /**
  * Unmarshal a `libcoopgamma_filter_table_t` from a buffer
  * 
- * @param   this  The output paramater for unmarshalled record
+ * @param   this  The output parameter for unmarshalled record
  * @param   vbuf  The buffer with the marshalled record
  * @param   np    Output parameter for the number of unmarshalled bytes, undefined on failure
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
@@ -776,7 +776,7 @@ size_t libcoopgamma_error_marshal(const libcoopgamma_error_t* restrict this, voi
 /**
  * Unmarshal a `libcoopgamma_error_t` from a buffer
  * 
- * @param   this  The output paramater for unmarshalled record
+ * @param   this  The output parameter for unmarshalled record
  * @param   vbuf  The buffer with the marshalled record
  * @param   np    Output parameter for the number of unmarshalled bytes, undefined on failure
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
@@ -866,7 +866,7 @@ size_t libcoopgamma_context_marshal(const libcoopgamma_context_t* restrict this,
 /**
  * Unmarshal a `libcoopgamma_context_t` from a buffer
  * 
- * @param   this  The output paramater for unmarshalled record
+ * @param   this  The output parameter for unmarshalled record
  * @param   vbuf  The buffer with the marshalled record
  * @param   np    Output parameter for the number of unmarshalled bytes, undefined on failure
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
@@ -956,7 +956,7 @@ size_t libcoopgamma_async_context_marshal(const libcoopgamma_async_context_t* re
 /**
  * Unmarshal a `libcoopgamma_async_context_t` from a buffer
  * 
- * @param   this  The output paramater for unmarshalled record
+ * @param   this  The output parameter for unmarshalled record
  * @param   vbuf  The buffer with the marshalled record
  * @param   np    Output parameter for the number of unmarshalled bytes, undefined on failure
  * @return        `LIBCOOPGAMMA_SUCCESS` (0), `LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE`,
