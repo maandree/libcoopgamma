@@ -1,0 +1,39 @@
+.TH LIBCOOPGAMMA_CONTEXT_INITIALISE 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_context_initialise - Initialise a libcoopgamma_context_t
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+int libcoopgamma_context_initialise(libcoopgamma_context_t* restrict \fIthis\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_context_initialise ()
+function initialises
+.IR this .
+.SH "RETURN VALUES"
+The
+.BR libcoopgamma_context_initialise ()
+returns 0 on success. On error, -1 is returned and
+.I errno
+is set appropriately.
+.SH "ERRORS"
+There are no errors specified for the
+.BR libcoopgamma_context_initialise ()
+function.
+.SH "SEE ALSO"
+.BR libcoopgamma.h (0),
+.BR libcoopgamma_context_destroy (3),
+.BR libcoopgamma_context_marshal (3),
+.BR libcoopgamma_ramps_initialise (3),
+.BR libcoopgamma_filter_initialise (3),
+.BR libcoopgamma_crtc_info_initialise (3),
+.BR libcoopgamma_filter_query_initialise (3),
+.BR libcoopgamma_queried_filter_initialise (3),
+.BR libcoopgamma_filter_table_initialise (3),
+.BR libcoopgamma_error_initialise (3),
+.BR libcoopgamma_async_context_initialise (3)
