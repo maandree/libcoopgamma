@@ -1512,14 +1512,13 @@ int libcoopgamma_get_gamma_sync(const libcoopgamma_filter_query_t* restrict,
  * Cannot be used before connecting to the server
  * 
  * @param   filter  The filter to apply, update, or remove, gamma ramp meta-data must match the CRTC's
- * @param   depth   The datatype for the stops in the gamma ramps, must match the CRTC's
  * @param   ctx     The state of the library, must be connected
  * @param   async   Information about the request, that is needed to
  *                  identify and parse the response, is stored here
  * @return          Zero on success, -1 on error
  */
 LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
-int libcoopgamma_set_gamma_send(const libcoopgamma_filter_t* restrict, libcoopgamma_depth_t,
+int libcoopgamma_set_gamma_send(const libcoopgamma_filter_t* restrict,
 				libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict);
 
 /**
@@ -1544,14 +1543,12 @@ int libcoopgamma_set_gamma_recv(libcoopgamma_context_t* restrict, libcoopgamma_a
  * operation without disconnection from the server
  * 
  * @param   filter  The filter to apply, update, or remove, gamma ramp meta-data must match the CRTC's
- * @param   depth   The datatype for the stops in the gamma ramps, must match the CRTC's
  * @param   ctx     The state of the library, must be connected
  * @return          Zero on success, -1 on error, in which case `ctx->error`
  *                  (rather than `errno`) is read for information about the error
  */
 LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
-int libcoopgamma_set_gamma_sync(const libcoopgamma_filter_t* restrict, libcoopgamma_depth_t,
-				libcoopgamma_context_t* restrict);
+int libcoopgamma_set_gamma_sync(const libcoopgamma_filter_t* restrict, libcoopgamma_context_t* restrict);
 
 
 
