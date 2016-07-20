@@ -1122,7 +1122,7 @@ static char* libcoopgamma_query(const char* restrict method, const char* restric
 	goto fail;
       if (status)
 	{
-	  errno = INVAL;
+	  errno = EINVAL;
 	  if ((n == sizeof(int)) && (*(int*)msg != 0))
 	    errno = *(int*)msg;
 	}
@@ -1423,7 +1423,7 @@ int libcoopgamma_set_nonblocking(libcoopgamma_context_t* restrict ctx, int nonbl
     flags |= O_NONBLOCK;
   else
     flags &= ~O_NONBLOCK;
-  return -(fcntl(ctx->fd, F_SETFL, flags) == -1)
+  return -(fcntl(ctx->fd, F_SETFL, flags) == -1);
 }
 
 
