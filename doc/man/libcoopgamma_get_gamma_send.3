@@ -18,9 +18,9 @@ The
 function sends a request over the connection of
 .I ctx
 to the server to retrieve the
-CRTC's, with the name given in the
-.I query->crtc
-parameter, applied filters. Information about the
+CRTC's, with the name given in
+.IR query->crtc ,
+applied filters. Information about the
 request is stored in
 .IR *async ,
 this information is used by
@@ -38,7 +38,7 @@ inclusively. If and only if
 .I query->coalesce
 is nonzero, the, from the selected filters,
 resulting gamma ramps are returned
-rather than a list of all selected filter.
+rather than a list of all selected filters.
 .SH "RETURN VALUES"
 Upon successful completion, the
 .BR libcoopgamma_get_gamma_send ()
