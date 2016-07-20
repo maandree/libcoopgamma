@@ -1,0 +1,49 @@
+.TH LIBCOOPGAMMA_SET_NONBLOCKING 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_set_nonblocking - Switch to or from nonblocking communication
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+int libcoopgamma_set_nonblocking(libcoopgamma_context_t *restrict \fIctx\fP, int \fInonblocking\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_set_nonblocking ()
+function sets the communication with the server for
+the connection of
+.I ctx
+to be nonblocking if
+.I nonblocking
+is nonzero,
+and to be block otherwise.
+.I ctx
+must already be connected to the server,
+which is achieved by calling the
+.BR libcoopgamma_connect (3)
+functon.
+.SH "RETURN VALUES"
+The
+.BR libcoopgamma_set_nonblocking ()
+returns 0 on success. On error, -1 is returned and
+.I errno
+is set appropriately.
+.SH "ERRORS"
+The
+.BR libcoopgamma_connect ()
+function may fail for any reason specified for
+.BR fcntl (3)
+with
+.I F_GETFL
+or
+.I F_SETFL
+as the second argument.
+.SH "SEE ALSO"
+.BR libcoopgamma_connect (3),
+.BR libcoopgamma_get_crtcs_send (3),
+.BR libcoopgamma_get_gamma_info_send (3),
+.BR libcoopgamma_get_gamma_send (3),
+.BR libcoopgamma_set_gamma_send (3)
