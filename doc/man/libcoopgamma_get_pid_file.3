@@ -43,10 +43,10 @@ function will not temporarily reset handling of
 .I SIGCHLD
 itself.
 .SH "RETURN VALUES"
-The
+Upon successful completion, the
 .BR libcoopgamma_get_pid_file ()
-function the pathname of the PID file on success.
-Success does not mean that the server has the
+function returns the pathname of the PID file.
+Success does not mean that the server is necessarily
 running at the moment. The user should free
 the returned pointer. On error,
 .I NULL

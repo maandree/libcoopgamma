@@ -44,10 +44,10 @@ function will not temporarily reset handling of
 .I SIGCHLD
 itself.
 .SH "RETURN VALUES"
-The
+Upon successful completion, the
 .BR libcoopgamma_get_socket_file ()
-function the pathname of the socket on success.
-Success does not mean that the server has the
+function returns the pathname of the socket.
+Success does not mean that the server is necessarily
 running at the moment. The user should free
 the returned pointer. On error,
 .I NULL
