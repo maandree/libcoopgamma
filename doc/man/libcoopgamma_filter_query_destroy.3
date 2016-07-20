@@ -1,0 +1,34 @@
+.TH LIBCOOPGAMMA_FILTER_QUERY_DESTROY 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_filter_query_destroy - Deinitialise a libcoopgamma_filter_query_t
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+void libcoopgamma_filter_query_destroy(libcoopgamma_filter_query_t* restrict \fIthis\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_filter_query_destroy ()
+function releases all resources allocated
+to
+.IR this .
+The function does however not free the
+allocation of the pointer
+.IR this
+itself.
+.SH "SEE ALSO"
+.BR libcoopgamma.h (0),
+.BR libcoopgamma_filter_query_initialise (3),
+.BR libcoopgamma_filter_query_marshal (3),
+.BR libcoopgamma_ramps_destroy (3),
+.BR libcoopgamma_filter_destroy (3),
+.BR libcoopgamma_crtc_info_destroy (3),
+.BR libcoopgamma_queried_filter_destroy (3),
+.BR libcoopgamma_filter_table_destroy (3),
+.BR libcoopgamma_error_destroy (3),
+.BR libcoopgamma_context_destroy (3),
+.BR libcoopgamma_async_context_destroy (3)
