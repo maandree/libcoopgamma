@@ -1,0 +1,73 @@
+.TH LIBCOOPGAMMA_CONNECT 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_connect - Connect to a coopgamma server
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+int libcoopgamma_connect(const char *restrict \fImethod\fP, const char *restrict \fIsite\fP,
+                         libcoopgamma_context_t* restrict \fIctx\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_connect ()
+function connects to the instance coopgamma server
+for the selected adjustment
+.I method
+and
+.IR site .
+If the server is not already running, it will be started. If
+.I method
+or
+.I site
+is
+.IR NULL ,
+the it will selected automatically.
+The state of the connection is stored in
+.IR ctx ,
+which must be initialised but not already connected.
+.IR ctx can be initialised with
+.BR libcoopgamma_context_initialise (3).
+.P
+For the duration of the function call,
+.I SIGCHLD
+most neither be ignored nor blocked. It is the
+user of this library's responsibility to ensure
+this. The
+.BR libcoopgamma_connect ()
+function will not temporarily reset handling of
+.I SIGCHLD
+itself.
+.SH "RETURN VALUES"
+The
+.BR libcoopgamma_connect ()
+returns 0 on success. On error, -1 is returned and
+.I errno
+is set appropriately.
+.SH "ERRORS"
+The
+.BR libcoopgamma_connect ()
+function may fail for any reason specified for
+.BR libcoopgamma_get_socket_file (3),
+.BR socket (3),
+.BR waitpid (3),
+and
+.BR connect (3).
+The function may also fail for any of the
+following reasons:
+.TP
+.B ENAMETOOLONG
+The pathname of the socket was too long.
+.TP
+.B 0
+The server failed to initialise.
+.SH "SEE ALSO"
+.BR libcoopgamma_get_methods (3),
+.BR libcoopgamma_get_pid_file (3),
+.BR libcoopgamma_get_socket_file (3),
+.BR libcoopgamma_context_initialise (3),
+.BR libcoopgamma_context_destroy (3),
+.BR libcoopgamma_set_nonblocking (3)
