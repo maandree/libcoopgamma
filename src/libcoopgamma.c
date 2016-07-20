@@ -2112,7 +2112,7 @@ int libcoopgamma_get_gamma_info_sync(const char* restrict ctrc, libcoopgamma_crt
  *                 identify and parse the response, is stored here
  * @return         Zero on success, -1 on error
  */
-int libcoopgamma_get_gamma_send(libcoopgamma_filter_query_t* restrict query,
+int libcoopgamma_get_gamma_send(const libcoopgamma_filter_query_t* restrict query,
 				libcoopgamma_context_t* restrict ctx,
 				libcoopgamma_async_context_t* restrict async)
 {
@@ -2310,7 +2310,7 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict table,
  * @return         Zero on success, -1 on error, in which case `ctx->error`
  *                 (rather than `errno`) is read for information about the error
  */
-int libcoopgamma_get_gamma_sync(libcoopgamma_filter_query_t* restrict query,
+int libcoopgamma_get_gamma_sync(const libcoopgamma_filter_query_t* restrict query,
 				libcoopgamma_filter_table_t* restrict table,
 				libcoopgamma_context_t* restrict ctx)
 {
@@ -2332,7 +2332,7 @@ int libcoopgamma_get_gamma_sync(libcoopgamma_filter_query_t* restrict query,
  *                  identify and parse the response, is stored here
  * @return          Zero on success, -1 on error
  */
-int libcoopgamma_set_gamma_send(libcoopgamma_filter_t* restrict filter, libcoopgamma_depth_t depth,
+int libcoopgamma_set_gamma_send(const libcoopgamma_filter_t* restrict filter, libcoopgamma_depth_t depth,
 				libcoopgamma_context_t* restrict ctx,
 				libcoopgamma_async_context_t* restrict async)
 {
@@ -2452,7 +2452,7 @@ int libcoopgamma_set_gamma_recv(libcoopgamma_context_t* restrict ctx,
  * @return          Zero on success, -1 on error, in which case `ctx->error`
  *                  (rather than `errno`) is read for information about the error
  */
-int libcoopgamma_set_gamma_sync(libcoopgamma_filter_t* restrict filter, libcoopgamma_depth_t depth,
+int libcoopgamma_set_gamma_sync(const libcoopgamma_filter_t* restrict filter, libcoopgamma_depth_t depth,
 				libcoopgamma_context_t* restrict ctx)
 {
   SYNC_CALL(libcoopgamma_set_gamma_send(filter, depth, ctx, &async),

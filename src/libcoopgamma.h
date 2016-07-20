@@ -1468,7 +1468,7 @@ int libcoopgamma_get_gamma_info_sync(const char* restrict, libcoopgamma_crtc_inf
  * @return         Zero on success, -1 on error
  */
 LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
-int libcoopgamma_get_gamma_send(libcoopgamma_filter_query_t* restrict, libcoopgamma_context_t* restrict,
+int libcoopgamma_get_gamma_send(const libcoopgamma_filter_query_t* restrict, libcoopgamma_context_t* restrict,
 				libcoopgamma_async_context_t* restrict);
 
 /**
@@ -1501,7 +1501,8 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict, libcoopga
  *                 (rather than `errno`) is read for information about the error
  */
 LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
-int libcoopgamma_get_gamma_sync(libcoopgamma_filter_query_t* restrict, libcoopgamma_filter_table_t* restrict,
+int libcoopgamma_get_gamma_sync(const libcoopgamma_filter_query_t* restrict,
+				libcoopgamma_filter_table_t* restrict,
 				libcoopgamma_context_t* restrict);
 
 
@@ -1518,7 +1519,7 @@ int libcoopgamma_get_gamma_sync(libcoopgamma_filter_query_t* restrict, libcoopga
  * @return          Zero on success, -1 on error
  */
 LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
-int libcoopgamma_set_gamma_send(libcoopgamma_filter_t* restrict, libcoopgamma_depth_t,
+int libcoopgamma_set_gamma_send(const libcoopgamma_filter_t* restrict, libcoopgamma_depth_t,
 				libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict);
 
 /**
@@ -1549,7 +1550,7 @@ int libcoopgamma_set_gamma_recv(libcoopgamma_context_t* restrict, libcoopgamma_a
  *                  (rather than `errno`) is read for information about the error
  */
 LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
-int libcoopgamma_set_gamma_sync(libcoopgamma_filter_t* restrict, libcoopgamma_depth_t,
+int libcoopgamma_set_gamma_sync(const libcoopgamma_filter_t* restrict, libcoopgamma_depth_t,
 				libcoopgamma_context_t* restrict);
 
 
