@@ -1,0 +1,49 @@
+.TH LIBCOOPGAMMA_CRTC_INFO_MARSHAL 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_crtc_info_marshal - Marshal a libcoopgamma_crtc_info_t
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+size_t libcoopgamma_crtc_info_marshal(libcoopgamma_crtc_info_t* restrict \fIthis\fP,
+                                      void* restrict \fIbuffer\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_crtc_info_marshal ()
+function marshals
+.I this
+into a
+.I buffer
+that can be sent to another process on any computer
+with a compatible processor. A compatible processor
+is any processor with the same endianness, encoding
+and sizes of the intrinsic data types and
+.IR size_t .
+.SH "RETURN VALUES"
+The
+.BR libcoopgamma_crtc_info_marshal ()
+returns the number of bytes stored in the
+.IR buffer ,
+or if
+.I buffer
+is
+.IR NULL ,
+the the number of bytes that would have
+been written if it was not
+.IR NULL .
+The function is always successful.
+.SH "SEE ALSO"
+.BR libcoopgamma_crtc_info_destroy (3),
+.BR libcoopgamma_crtc_info_unmarshal (3),
+.BR libcoopgamma_ramps_marshal (3),
+.BR libcoopgamma_filter_marshal (3),
+.BR libcoopgamma_filter_query_marshal (3),
+.BR libcoopgamma_queried_filter_marshal (3),
+.BR libcoopgamma_filter_table_marshal (3),
+.BR libcoopgamma_error_marshal (3),
+.BR libcoopgamma_context_marshal (3),
+.BR libcoopgamma_async_context_marshal (3)

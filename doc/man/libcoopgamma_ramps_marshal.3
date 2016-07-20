@@ -1,0 +1,62 @@
+.TH LIBCOOPGAMMA_RAMPS_MARSHAL 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_ramps_marshal - Marshal a member type of libcoopgamma_ramps_t
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+size_t libcoopgamma_ramps_marshal(void* restrict \fIthis\fP, void* restrict \fIbuffer\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_ramps_marshal ()
+function marshals
+.I this
+into a
+.I buffer
+that can be sent to another process on any computer
+with a compatible processor. A compatible processor
+is any processor with the same endianness, encoding
+and sizes of the intrinsic data types and
+.IR size_t .
+.P
+.I this
+must be of any of the following types, and not casted
+to any other type such as
+.I void*
+or
+.IR libcoopgamma_ramps_t:
+.IR libcoopgamma_ramps8_t ,
+.IR libcoopgamma_ramps16_t ,
+.IR libcoopgamma_ramps32_t ,
+.IR libcoopgamma_ramps64_t ,
+.IR libcoopgamma_rampsf_t ,
+or
+.IR libcoopgamma_rampsd_t .
+.SH "RETURN VALUES"
+The
+.BR libcoopgamma_ramps_marshal ()
+returns the number of bytes stored in the
+.IR buffer ,
+or if
+.I buffer
+is
+.IR NULL ,
+the the number of bytes that would have
+been written if it was not
+.IR NULL .
+The function is always successful.
+.SH "SEE ALSO"
+.BR libcoopgamma_ramps_destroy (3),
+.BR libcoopgamma_ramps_unmarshal (3),
+.BR libcoopgamma_ramps_marshal (3),
+.BR libcoopgamma_crtc_info_marshal (3),
+.BR libcoopgamma_filter_query_marshal (3),
+.BR libcoopgamma_queried_filter_marshal (3),
+.BR libcoopgamma_filter_table_marshal (3),
+.BR libcoopgamma_error_marshal (3),
+.BR libcoopgamma_context_marshal (3),
+.BR libcoopgamma_async_context_marshal (3)
