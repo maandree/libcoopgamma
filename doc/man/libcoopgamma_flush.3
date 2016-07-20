@@ -1,0 +1,58 @@
+.TH LIBCOOPGAMMA_FLUSH 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_flush - Send all pending outbound data
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+int libcoopgamma_flush(libcoopgamma_context_t *restrict \fIctx\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_flush ()
+function sends all data on
+.I ctx
+that have not yet been sent because of
+interruption or similar.
+.SH "RETURN VALUES"
+The
+.BR libcoopgamma_flush ()
+returns 0 on success. On error, -1 is returned and
+.I errno
+is set appropriately.
+.SH "ERRORS"
+The
+.BR libcoopgamma_flush ()
+function may fail for any reason specified for
+.BR send (3).
+Particularly interesting exceptional
+conditions, that are not errors proper, include
+those indicated by the following values on
+.IR errno :
+.TP
+.B EINTR
+The function was interrupted by a signal. When
+this happens, just resume be calling the functon
+again.
+.TP
+.BR EAGAIN " or " EWOULDBLOCK
+The communication is nonblocking the buffer
+between the server and the client is full,
+and no more data can be queued without blocking.
+When this happens, wait a short period of time
+and call the function again to resume.
+.BR select (3)
+or similar function can be used to wait until
+.I ctx->fd
+is writable.
+.SH "SEE ALSO"
+.BR libcoopgamma_synchronise (3),
+.BR libcoopgamma_set_nonblocking (3),
+.BR libcoopgamma_connect (3),
+.BR libcoopgamma_get_crtcs_send (3),
+.BR libcoopgamma_get_gamma_info_send (3),
+.BR libcoopgamma_get_gamma_send (3),
+.BR libcoopgamma_set_gamma_send (3)
