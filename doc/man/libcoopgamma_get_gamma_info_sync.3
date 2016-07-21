@@ -1,0 +1,82 @@
+.TH LIBCOOPGAMMA_GET_GAMMA_INFO_SYNC 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_get_gamma_info_sync - Synchronously retrieve metainformation about a CRTC's gamma ramps
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+int libcoopgamma_get_gamma_info_sync(const char* restrict \fIcrtc\fP,
+                                     libcoopgamma_crtc_info_t* restrict \fIinfo\fP,
+                                     libcoopgamma_context_t *restrict \fIctx\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_get_gamma_info_sync ()
+function synchronously retrieves metainformation
+about the CRTC's, whose name is
+.IR crtc ,
+gamma ramps over the connection of
+.I ctx
+to the server.
+.P
+The information about the CRTC's gamma ramps
+will be stored in
+.IR *info .
+In particular,
+.I info->cooperative
+will be set to nonzero (actually 1) if there is
+a coopgamma server running,
+.I info->supported
+will be set to
+.IR LIBCOOPGAMMA_NO ,
+.IR LIBCOOPGAMMA_MAYBE ,
+or
+.IR LIBCOOPGAMMA_YES ,
+which ever describes the state of gamma ramp
+support on the CRTC. Unless
+.I info->supported
+is
+.IR LIBCOOPGAMMA_NO ,
+the following will also be set:
+.TP
+.I info->red_size
+The number of stops on the red gamma ramp.
+.TP
+.I info->green_size
+The number of stops on the green gamma ramp.
+.TP
+.I info->blue_size
+The number of stops on the blue gamma ramp.
+.TP
+.I info->depth
+Describes the gamma ramp types used for the CRTC.
+.SH "RETURN VALUES"
+Upon successful completion, the
+.BR libcoopgamma_get_gamma_info_recv ()
+function returns 0. On error, -1 is returned and
+.I errno
+is set appropriately.
+.SH "ERRORS"
+The
+.BR libcoopgamma_get_gamma_info_send ()
+function may fail for any reason specified for
+.BR libcoopgamma_get_gamma_info_send (3),
+.BR libcoopgamma_get_gamma_info_recv (3),
+.BR libcoopgamma_flush (3),
+or
+.BR libcoopgamma_synchronise (3).
+.SH "SEE ALSO"
+.BR libcoopgamma.h (0),
+.BR libcoopgamma_crtc_info_initialise (3),
+.BR libcoopgamma_async_context_initialise (3),
+.BR libcoopgamma_flush (3),
+.BR libcoopgamma_synchronise (3),
+.BR libcoopgamma_set_nonblocking (3),
+.BR libcoopgamma_get_gamma_info_send (3),
+.BR libcoopgamma_get_gamma_info_recv (3),
+.BR libcoopgamma_get_crtcs_sync (3),
+.BR libcoopgamma_get_gamma_sync (3),
+.BR libcoopgamma_set_gamma_sync (3)
