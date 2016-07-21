@@ -1,0 +1,86 @@
+.TH LIBCOOPGAMMA_GET_GAMMA_INFO_RECV 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_get_gamma_info_recv - Receive metainformation about a CRTC's gamma ramps
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+int libcoopgamma_get_gamma_info_recv(libcoopgamma_crtc_info_t *restrict \fIinfo\fP,
+                                     libcoopgamma_context_t *restrict \fIctx\fP,
+                                     libcoopgamma_async_context_t *restrict \fIasync\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_get_gamma_info_recv ()
+function parses the response for the requests
+sent using the
+.BR libcoopgamma_get_gamma_info_send ()
+function with the same
+.I ctx
+and
+.I async
+arguments. The
+.I async
+must have been selected by the last call to the
+.BR libcoopgamma_synchronise (3)
+function.
+.P
+The information about the CRTC's gamma ramps
+will be stored in
+.IR *info .
+In particular,
+.I info->cooperative
+will be set to nonzero (actually 1) if there is
+a coopgamma server running,
+.I info->supported
+will be set to
+.IR LIBCOOPGAMMA_NO ,
+.IR LIBCOOPGAMMA_MAYBE ,
+or
+.IR LIBCOOPGAMMA_YES ,
+which ever describes the state of gamma ramp
+support on the CRTC. Unless
+.I info->supported
+is
+.IR LIBCOOPGAMMA_NO ,
+the following will also be set:
+.TP
+.I info->red_size
+The number of stops on the red gamma ramp.
+.TP
+.I info->green_size
+The number of stops on the green gamma ramp.
+.TP
+.I info->blue_size
+The number of stops on the blue gamma ramp.
+.TP
+.I info->depth
+Describes the gamma ramp types used for the CRTC.
+.SH "RETURN VALUES"
+Upon successful completion, the
+.BR libcoopgamma_get_gamma_info_recv ()
+function returns 0. On error, -1 is returned and
+.I errno
+is set appropriately.
+.SH "ERRORS"
+The
+.BR libcoopgamma_get_gamma_info_recv ()
+function may fail for any reason specified for
+.BR malloc (3).
+The function may also fail for the following reasons:
+.TP
+.B EBADMSG
+The received message was corrupt.
+.SH "SEE ALSO"
+.BR libcoopgamma.h (0),
+.BR libcoopgamma_crtc_info_initialise (3),
+.BR libcoopgamma_async_context_destroy (3),
+.BR libcoopgamma_synchronise (3),
+.BR libcoopgamma_get_gamma_info_send (3),
+.BR libcoopgamma_get_gamma_info_sync (3),
+.BR libcoopgamma_get_crtcs_recv (3),
+.BR libcoopgamma_get_gamma_recv (3),
+.BR libcoopgamma_set_gamma_recv (3)
