@@ -1,0 +1,102 @@
+.TH LIBCOOPGAMMA_GET_GAMMA_SYNC 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_get_gamma_sync - Synchronously retrieve a CRTC's filter table
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+int libcoopgamma_get_gamma_sync(const libcoopgamma_filter_query_t* restrict \fIquery\fP,
+                                libcoopgamma_filter_table_t* restrict \fItable\fpP,
+                                libcoopgamma_context_t *restrict \fIctx\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_get_gamma_sync ()
+function synchronously retrieves the gamma ramp filter
+table for the CRTC, whose name is
+.IR query->crtc ,
+over the connection of
+.I ctx
+to the server.
+.P
+The response will include all filter with a
+priority between
+.I query->low_priority
+and
+.IR query->high_priority,
+inclusively. If and only if
+.I query->coalesce
+is nonzero, the, from the selected filters,
+resulting gamma ramps are returned
+rather than a list of all selected filters.
+.P
+The filters will be stored in
+.IR *table .
+In particular, the number of filter (1 if coalesced)
+will be stored to
+.IR table->filter_count ,
+the filters themselves will be stored in
+.IR table->filters .
+Some metainformation sent by the server will also
+be stored in
+.IR *table :
+.TP
+.I info->red_size
+The number of stops on the red gamma ramp.
+.TP
+.I info->green_size
+The number of stops on the green gamma ramp.
+.TP
+.I info->blue_size
+The number of stops on the blue gamma ramp.
+.TP
+.I info->depth
+Describes the gamma ramp types used for the CRTC.
+.P
+For all
+.I i
+from 0 up to but exclusing
+.IR table->filter_count ,
+Information about the filter applied
+.IR i :th
+is stored in
+.IR table->filters[i] .
+.I table->filters[i].ramps
+is the gamma ramps for
+.I i :th
+the filter. Unless coalesced,
+.I table->filters[i].priority
+and
+.I table->filters[i].class
+is also set.
+.I table->filters[i].priority
+is the prority of the filter, and
+.I table->filters[i].class
+is the class (identifier) of the filter.
+.SH "RETURN VALUES"
+Upon successful completion, the
+.BR libcoopgamma_get_gamma_recv ()
+function returns 0. On error, -1 is returned and
+.I errno
+is set appropriately.
+.SH "ERRORS"
+The
+.BR libcoopgamma_get_gamma_send ()
+function may fail for any reason specified for
+.BR libcoopgamma_get_gamma_send (3),
+.BR libcoopgamma_get_gamma_recv (3),
+.BR libcoopgamma_flush (3),
+or
+.BR libcoopgamma_synchronise (3).
+.SH "SEE ALSO"
+.BR libcoopgamma.h (0),
+.BR libcoopgamma_filter_query_initialise (3),
+.BR libcoopgamma_filter_table_initialise (3),
+.BR libcoopgamma_get_gamma_send (3),
+.BR libcoopgamma_get_gamma_recv (3),
+.BR libcoopgamma_get_crtcs_sync (3),
+.BR libcoopgamma_get_gamma_info_sync (3),
+.BR libcoopgamma_set_gamma_sync (3)
