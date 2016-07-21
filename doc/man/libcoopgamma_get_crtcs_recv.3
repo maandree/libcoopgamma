@@ -1,0 +1,63 @@
+.TH LIBCOOPGAMMA_GET_CRTCS_RECV 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_get_crtcs_recv - Receive a list of all available CRTC:s
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+char **libcoopgamma_get_crtcs_recv(libcoopgamma_context_t *restrict \fIctx\fP,
+                                   libcoopgamma_async_context_t *restrict \fIasync\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_get_crtcs_recv ()
+function parses the response for the requests
+sent using the
+.BR libcoopgamma_get_crtcs_send ()
+function with the same
+.I ctx
+and
+.I async
+arguments. The
+.I async
+must have been selected by the last call to the
+.BR libcoopgamma_synchronise (3)
+function.
+.SH "RETURN VALUES"
+Upon successful completion, the
+.BR libcoopgamma_get_crtcs_recv ()
+function returns a
+.I NULL
+terminated
+list of all available CRTC:s. If possible,
+the CRTC:s are named by the connected
+monitors' EDID:s. None of the elements can
+contain a NUL or LF byte. The elements in
+the list are subpointers of the returned
+pointer. The user shall free the returned
+pointer, which effectively frees all its
+elements. On error,
+.I NULL
+is returned and
+.I errno
+is set appropriately.
+.SH "ERRORS"
+The
+.BR libcoopgamma_get_crtcs_recv ()
+function may fail for any reason specified for
+.BR malloc (3).
+The function may also fail for the following reasons:
+.TP
+.B EBADMSG
+The received message was corrupt.
+.SH "SEE ALSO"
+.BR libcoopgamma_async_context_destroy (3),
+.BR libcoopgamma_synchronise (3),
+.BR libcoopgamma_get_crtcs_send (3),
+.BR libcoopgamma_get_crtcs_sync (3),
+.BR libcoopgamma_get_gamma_info_recv (3),
+.BR libcoopgamma_get_gamma_recv (3),
+.BR libcoopgamma_set_gamma_recv (3)
