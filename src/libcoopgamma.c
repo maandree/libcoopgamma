@@ -1736,6 +1736,8 @@ static int check_error(libcoopgamma_context_t* restrict ctx, libcoopgamma_async_
   int have_in_response_to = 0;
   int have_error = 0;
   int bad = 0;
+  char* payload;
+  size_t n;
   
   for (;;)
     {
@@ -1789,14 +1791,27 @@ static int check_error(libcoopgamma_context_t* restrict ctx, libcoopgamma_async_
       return 0;
     }
   
-  if (bad || (have_in_response_to != 1) || (have_error != 1))
+  payload = next_payload(ctx, &n);
+  if (payload != NULL)
     {
-      errno = EBADMSG;
-      copy_errno(ctx);
-      return -1;
+      if (memchr(ctx, '\0', n) || (payload[n - 1] != '\n'))
+	goto badmsg;
+      ctx->error.description = malloc(n);
+      if (ctx->error.description == NULL)
+	goto fail;
+      memcpy(ctx->error.description, payload, n - 1);
+      ctx->error.description[n - 1] = '\0';
     }
   
+  if (bad || (have_in_response_to != 1) || (have_error != 1))
+    goto badmsg;
+  
   return 1;
+badmsg:
+  errno = EBADMSG;
+fail:
+  copy_errno(ctx);
+  return -1;
 }
 
 
