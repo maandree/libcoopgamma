@@ -1,0 +1,105 @@
+.TH LIBCOOPGAMMA_SET_GAMMA_SYNC 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_set_gamma_sync - Synchronously modify a CRTC's filter table
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+int libcoopgamma_set_gamma_sync(const libcoopgamma_filter_t* restrict \fIfilter\fP,
+                                libcoopgamma_context_t *restrict \fIctx\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_set_gamma_sync ()
+function synchronously adds, updates, or removes
+a filter to, in, or from the CTRC's, whose name is
+.IR filter->crtc ,
+filter table, over the connection of
+.I ctx
+to the server.
+.P
+A filter with the class (identifier)
+.I filter->class
+is removed if
+.I filter->lifespan
+is
+.IR LIBCOOPGAMMA_REMOVE .
+If
+.I filter->lifespan
+is not
+.IR LIBCOOPGAMMA_REMOVE ,
+a filter with matching class is updated
+if such filter exists, otherwise the filter is
+added. The fitler, unless it is removed, is
+inserted or moved to the priority specified by
+.IR filter->priority .
+.I filter->priority
+is isregarded when
+.I filter->lifespan
+is
+.IR LIBCOOPGAMMA_REMOVE .
+A filter with high priority is applied before
+a fitler with low priority. The filter is removed
+when it is explicit removed used
+.IR LIBCOOPGAMMA_REMOVE ,
+or if
+.I filter->lifespan
+is
+.IR LIBCOOPGAMMA_UNTIL_DEATH ,
+when the client that last added or updated
+the filter disconnects from the server, which
+ever comes first. Note that, when updating a
+filter, the lifespan is updated to
+.IR filter->lifespan .
+.P
+The class
+.RI ( filter->class )
+must be of the format
+\fI${PACKAGE_NAME}\fP\fB::\fP\fI${COMMAND_NAME}\fP\fB::\fP\fI${RULE}\fP,
+where
+.I ${PACKAGE_NAME}
+is the name of the package as installed on the system,
+the program should make it easy to adjust this;
+.I ${COMMAND_NAME}
+is the name of the program, this too should not
+easily adjustable, and
+.I ${RULE}
+is a string that identifies filter uniquely within
+the program, or can be hardcoded or runtime
+configurable.
+.P
+Unless
+.I filter->lifespan
+is
+.IR LIBCOOPGAMMA_REMOVE ,
+.I filter->depth
+and
+.I filter->ramps
+must be configured to specified the desired ramp values.
+.SH "RETURN VALUES"
+Upon successful completion, the
+.BR libcoopgamma_set_gamma_recv ()
+function returns 0. On error, -1 is returned and
+.I errno
+is set appropriately.
+.SH "ERRORS"
+The
+.BR libcoopgamma_set_gamma_send ()
+function may fail for any reason specified for
+.BR libcoopgamma_set_gamma_send (3),
+.BR libcoopgamma_set_gamma_recv (3),
+.BR libcoopgamma_flush (3),
+or
+.BR libcoopgamma_synchronise (3).
+.SH "SEE ALSO"
+.BR libcoopgamma.h (0),
+.BR libcoopgamma_filter_query_initialise (3),
+.BR libcoopgamma_filter_table_initialise (3),
+.BR libcoopgamma_set_gamma_send (3),
+.BR libcoopgamma_set_gamma_recv (3),
+.BR libcoopgamma_get_crtcs_sync (3),
+.BR libcoopgamma_get_gamma_info_sync (3),
+.BR libcoopgamma_get_gamma_sync (3)
