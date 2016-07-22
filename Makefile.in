@@ -1,0 +1,74 @@
+# Copyright (C) 2016  Mattias Andrée <maandree@kth.se>
+# 
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+
+### This file will be stored to Makefile once you have run ./configure. ###
+### See INSTALL for information on how to install this package.         ###
+
+
+
+##### What is below this line is configurable, but is seldom useful. #####
+
+
+# The name of the package as it should be installed.
+PKGNAME = libcoopgamma
+
+
+
+##### Nothing interesting below this. #####
+
+
+# In case you want add some configurations. Primarily
+# intended for maintainers. Perhaps add GPG_KEY here.
+# Of course, you can declare everthing with ./configure,
+# but with this you are less likely to forget it.
+-include .make-configurations
+
+
+# YOU, AS A USER, SHOULD NOT CHANGE THESE VARIABLES. {{
+# They specify how the reusable makefiles in mk/ shall behave.
+
+# Package information.
+_PROJECT = libcoopgamma
+_VERSION = 0.1
+
+# Used by mk/lang-c.mk
+_C_STD = c99
+_PEDANTIC = yes
+_LIB = libcoopgamma
+_OBJ_libcoopgamma = libcoopgamma
+_SO_VERSION_libcoopgamma = $(_VERSION)
+_SO_MAJOR_libcoopgamma = $(shell echo $(_SO_VERSION_libcoopgamma) | cut -d . -f 1)
+_H = libcoopgamma
+_HEADER_DIRLEVELS = 1
+_CPPFLAGS = -D'PACKAGE="$(PKGNAME)"' -D'PROGRAM_VERSION="$(_VERSION)"'
+
+# Used by mk/man.mk
+_MAN_PAGE_SECTIONS = 0 3 7
+_MAN_0 = libcoopgamma.h
+__TYPES = async_context context crtc_info error filter filter_query filter_table queried_filter ramps
+__PROTOCOLS = get_crtcs get_gamma_info get_gamma set_gamma
+_MAN_3 = $(foreach T,$(__TYPES),$(foreach F,destroy initialise marshal unmarshal,libcoopgamma_$(T)_$(F))) \
+         $(foreach P,$(__PROTOCOLS),$(foreach F,recv send sync,libcoopgamma_$(T)_$(F))) \
+         libcoopgamma_connect          libcoopgamma_flush         libcoopgamma_get_method_and_site \
+         libcoopgamma_get_methods      libcoopgamma_get_pid_file  libcoopgamma_get_socket_file \
+         libcoopgamma_set_nonblocking  libcoopgamma_synchronise
+_MAN_7 = libcoopgamma
+
+# Used by mk/copy.mk
+_COPYING = COPYING LICENSE
+
+# Used by mk/dist.mk
+_EVERYTHING = $(__EVERYTHING_ALL_COMMON) src/libcoopgamma.c src/libcoopgamma.h  \
+              DEPENDENCIES
+
+# }}
+
+
+# All of the make rules and the configurations.
+include $(v)mk/all.mk
+
