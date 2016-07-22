@@ -1023,6 +1023,7 @@ char** libcoopgamma_get_methods(void)
   rc[n] = NULL;
   while (n--)
     {
+      rc[n] = buffer;
       buffer = stpcpy(buffer, methods[n]) + 1;
       free(methods[n]);
     }
