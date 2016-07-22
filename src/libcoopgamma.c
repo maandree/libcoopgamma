@@ -1611,7 +1611,7 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
       ssize_t n__;							\
       char* msg__;							\
       snprintf(NULL, (size_t)0, format "%zn", __VA_ARGS__, &n__);	\
-      msg__ = malloc((size_t)n__ + (payload_size));			\
+      msg__ = malloc((size_t)n__ + (payload_size) + (size_t)1);		\
       if (msg__ == NULL)						\
 	goto fail;							\
       sprintf(msg__, format, __VA_ARGS__);				\
