@@ -1343,7 +1343,7 @@ int libcoopgamma_connect(const char* restrict method, const char* restrict site,
   path = libcoopgamma_get_socket_file(method, site);
   if (path == NULL)
     return -1;
-  if (strlen(path) <= sizeof(address.sun_path))
+  if (strlen(path) >= sizeof(address.sun_path))
     {
       free(path);
       errno = ENAMETOOLONG;
