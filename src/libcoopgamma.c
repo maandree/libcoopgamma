@@ -1289,7 +1289,7 @@ char* libcoopgamma_get_socket_file(const char* restrict method, const char* rest
     return NULL;
   
   p = strchr(raw, '\0') - 1;
-  if (*p != '\n')
+  if ((p < raw) || (*p != '\n'))
     {
       errno = EBADMSG;
       goto fail;
