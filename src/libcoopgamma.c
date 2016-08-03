@@ -1500,11 +1500,12 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
   char* value;
   
   if (ctx->inbound_head == ctx->inbound_tail)
-    ctx->inbound_head = ctx->inbound_tail = 0;
+    ctx->inbound_head = ctx->inbound_tail = ctx->curline = 0;
   
   if (ctx->inbound_tail > 0)
     {
       memmove(ctx->inbound, ctx->inbound + ctx->inbound_tail, ctx->inbound_head -= ctx->inbound_tail);
+      ctx->curline -= ctx->inbound_tail;
       ctx->inbound_tail = 0;
     }
   
@@ -1538,7 +1539,7 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
 	  if (memchr(line, '\0', ctx->inbound_head - ctx->curline) != NULL)
 	    ctx->bad_message = 1;
 	  *p++ = '\0';
-	  ctx->curline += (size_t)(p - ctx->inbound);
+	  ctx->curline = (size_t)(p - ctx->inbound);
 	  if (!*line)
 	    {
 	      ctx->have_all_headers = 1;
@@ -1619,7 +1620,6 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
 	memcpy(msg__ + n__, (payload), (payload_size));			\
       if (send_message((ctx), msg__, (size_t)n__ + (payload_size)) < 0)	\
 	goto fail;							\
-      free(msg__);							\
     }									\
   while (0)
 
@@ -1684,7 +1684,7 @@ static int send_message(libcoopgamma_context_t* restrict ctx, char* msg, size_t 
 static char* next_header(libcoopgamma_context_t* restrict ctx)
 {
   char* rc = ctx->inbound + ctx->inbound_tail;
-  ctx->inbound_tail += strlen(ctx->inbound) + 1;
+  ctx->inbound_tail += strlen(rc) + 1;
   return rc;
 }
 
