@@ -2033,18 +2033,18 @@ int libcoopgamma_get_gamma_info_recv(libcoopgamma_crtc_info_t* restrict info,
   char* line;
   char* value;
   size_t _n;
-  int have_cooperative = 0;
-  int have_depth = 0;
-  int have_red_size = 0;
-  int have_green_size = 0;
-  int have_blue_size = 0;
-  int have_gamma_support = 0;
-  int bad = 0, r = 0, g = 0;
+  int have_cooperative = 0, have_gamma_support = 0, have_colourspace = 0;
+  int have_depth       = 0, have_white_x = 0, have_white_y = 0;
+  int have_red_size    = 0, have_red_x   = 0, have_red_y   = 0;
+  int have_green_size  = 0, have_green_x = 0, have_green_y = 0;
+  int have_blue_size   = 0, have_blue_x  = 0, have_blue_y  = 0;
+  int bad = 0, r = 0, g = 0, b = 0, x = 0;
   
   if (check_error(ctx, async))
     return -1;
   
   info->cooperative = 0; /* Should be in the response, but ... */
+  info->colourspace = LIBCOOPGAMMA_UNKNOWN;
   
   for (;;)
     {
@@ -2094,11 +2094,51 @@ int libcoopgamma_get_gamma_info_recv(libcoopgamma_crtc_info_t* restrict info,
 	  if (strcmp(value, temp))
 	    bad = 1;
 	}
+      else if ((x = r = (strstr(line, "Red x: ")   == line)) ||
+	           (r = (strstr(line, "Red y: ")   == line)) ||
+	       (x = g = (strstr(line, "Green x: ") == line)) ||
+	           (g = (strstr(line, "Green y: ") == line)) ||
+	       (x = b = (strstr(line, "Blue x: ")  == line)) ||
+	           (b = (strstr(line, "Blue y: ")  == line)) ||
+	           (x = (strstr(line, "White x: ") == line)) ||
+	                (strstr(line, "White y: ") == line))
+	{
+	  unsigned* out;
+	  int* have;
+	  if      (r && x)  have = &have_red_x,   out = &(info->red_x);
+	  else if (r)       have = &have_red_y,   out = &(info->red_y);
+	  else if (g && x)  have = &have_green_x, out = &(info->green_x);
+	  else if (g)       have = &have_green_y, out = &(info->green_y);
+	  else if (b && x)  have = &have_blue_x,  out = &(info->blue_x);
+	  else if (b)       have = &have_blue_y,  out = &(info->blue_y);
+	  else if (x)       have = &have_white_x, out = &(info->white_x);
+	  else              have = &have_white_y, out = &(info->white_y);
+	  *have = 1 + !!*have;
+	  *out = (unsigned)atoi(value);
+	  sprintf(temp, "%u", *out);
+	  if (strcmp(value, temp))
+	    bad = 1;
+	}
+      else if (strstr(line, "Colour space: ") == line)
+	{
+	  have_colourspace = 1 + !!have_colourspace;
+	  if      (!strcmp(value, "sRGB"))     info->colourspace = LIBCOOPGAMMA_SRGB;
+	  else if (!strcmp(value, "RGB"))      info->colourspace = LIBCOOPGAMMA_RGB;
+	  else if (!strcmp(value, "non-RGB"))  info->colourspace = LIBCOOPGAMMA_NON_RGB;
+	  else if (!strcmp(value, "grey"))     info->colourspace = LIBCOOPGAMMA_GREY;
+	  else
+	    info->colourspace = LIBCOOPGAMMA_UNKNOWN;
+	}
     }
   
   (void) next_payload(ctx, &_n);
   
-  if (bad || (have_gamma_support != 1))
+  info->have_gamut = (have_red_x && have_green_x && have_blue_x && have_white_x &&
+		      have_red_y && have_green_y && have_blue_y && have_white_y);
+  
+  if (bad || (have_gamma_support != 1) || (have_red_x > 1) || (have_red_y > 1) ||
+      (have_green_x > 1) || (have_green_y > 1) || (have_blue_x > 1) || (have_blue_y > 1) ||
+      (have_white_x > 1) || (have_white_y > 1) || (have_colourspace > 1))
     {
       errno = EBADMSG;
       copy_errno(ctx);
