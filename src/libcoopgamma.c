@@ -410,12 +410,23 @@ size_t libcoopgamma_crtc_info_marshal(const libcoopgamma_crtc_info_t* restrict t
   marshal_version(LIBCOOPGAMMA_CRTC_INFO_VERSION);
   marshal_version(LIBCOOPGAMMA_DEPTH_VERSION);
   marshal_version(LIBCOOPGAMMA_SUPPORT_VERSION);
+  marshal_version(LIBCOOPGAMMA_COLOURSPACE_VERSION);
   marshal_prim(this->cooperative, int);
   marshal_prim(this->depth, libcoopgamma_depth_t);
   marshal_prim(this->red_size, size_t);
   marshal_prim(this->green_size, size_t);
   marshal_prim(this->blue_size, size_t);
   marshal_prim(this->supported, libcoopgamma_support_t);
+  marshal_prim(this->colourspace, libcoopgamma_colourspace_t);
+  marshal_prim(this->have_gamut, int);
+  marshal_prim(this->red_x, unsigned);
+  marshal_prim(this->red_y, unsigned);
+  marshal_prim(this->green_x, unsigned);
+  marshal_prim(this->green_y, unsigned);
+  marshal_prim(this->blue_x, unsigned);
+  marshal_prim(this->blue_y, unsigned);
+  marshal_prim(this->white_x, unsigned);
+  marshal_prim(this->white_y, unsigned);
   MARSHAL_EPILOGUE;
 }
 
@@ -436,12 +447,23 @@ int libcoopgamma_crtc_info_unmarshal(libcoopgamma_crtc_info_t* restrict this,
   unmarshal_version(LIBCOOPGAMMA_CRTC_INFO_VERSION);
   unmarshal_version(LIBCOOPGAMMA_DEPTH_VERSION);
   unmarshal_version(LIBCOOPGAMMA_SUPPORT_VERSION);
+  unmarshal_version(LIBCOOPGAMMA_COLOURSPACE_VERSION);
   unmarshal_prim(this->cooperative, int);
   unmarshal_prim(this->depth, libcoopgamma_depth_t);
   unmarshal_prim(this->red_size, size_t);
   unmarshal_prim(this->green_size, size_t);
   unmarshal_prim(this->blue_size, size_t);
   unmarshal_prim(this->supported, libcoopgamma_support_t);
+  unmarshal_prim(this->colourspace, libcoopgamma_colourspace_t);
+  unmarshal_prim(this->have_gamut, int);
+  unmarshal_prim(this->red_x, unsigned);
+  unmarshal_prim(this->red_y, unsigned);
+  unmarshal_prim(this->green_x, unsigned);
+  unmarshal_prim(this->green_y, unsigned);
+  unmarshal_prim(this->blue_x, unsigned);
+  unmarshal_prim(this->blue_y, unsigned);
+  unmarshal_prim(this->white_x, unsigned);
+  unmarshal_prim(this->white_y, unsigned);
   UNMARSHAL_EPILOGUE;
 }
 

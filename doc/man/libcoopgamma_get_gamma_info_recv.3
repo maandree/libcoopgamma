@@ -59,6 +59,70 @@ The number of stops on the blue gamma ramp.
 .TP
 .I info->depth
 Describes the gamma ramp types used for the CRTC.
+.P
+The
+.BR libcoopgamma_get_gamma_info_recv ()
+will also store monitor's colourspace information in
+.IR *info .
+In particular,
+.I info->colourspace
+will be set to
+.IR LIBCOOPGAMMA_SRGB ,
+.IR LIBCOOPGAMMA_RGB ,
+.IR LIBCOOPGAMMA_NON_RGB ,
+.IR LIBCOOPGAMMA_GREY ,
+or
+.IR LIBCOOPGAMMA_UNKNOWN ,
+and
+.I info->have_gamut
+will be set to 1 or 0.
+.I info->have_gamut
+should be set to 0 unless
+.I info->colourspace
+is set to
+.I LIBCOOPGAMMA_SRGB
+or
+.IR LIBCOOPGAMMA_RGB ,
+and it should be set to 1 if
+.I info->colourspace
+is set to
+.I LIBCOOPGAMMA_SRGB ,
+however there are no guarantees that
+this is true. If
+.I info->have_gamut
+is non-zero, the following will also be set:
+.TP
+.I info->red_x
+The x-value (CIE xyY) of the monitor's
+red colour, multiplied by 1024.
+.TP
+.I info->red_y
+The y-value (CIE xyY) of the monitor's
+red colour, multiplied by 1024.
+.TP
+.I info->green_x
+The x-value (CIE xyY) of the monitor's
+green colour, multiplied by 1024.
+.TP
+.I info->green_y
+The y-value (CIE xyY) of the monitor's
+green colour, multiplied by 1024.
+.TP
+.I info->blue_x
+The x-value (CIE xyY) of the monitor's
+blue colour, multiplied by 1024.
+.TP
+.I info->blue_y
+The y-value (CIE xyY) of the monitor's
+blue colour, multiplied by 1024.
+.TP
+.I info->white_x
+The x-value (CIE xyY) of the monitor's
+default white point, multiplied by 1024.
+.TP
+.I info->white_y
+The y-value (CIE xyY) of the monitor's
+default white point, multiplied by 1024.
 .SH "RETURN VALUES"
 Upon successful completion, the
 .BR libcoopgamma_get_gamma_info_recv ()

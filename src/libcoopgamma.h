@@ -97,6 +97,13 @@
 
 /**
  * Number used to identify implementation
+ * version of `libcoopgamma_colourspace_t`, if it
+ * is ever modified, this number is increased
+ */
+#define LIBCOOPGAMMA_COLOURSPACE_VERSION  0
+
+/**
+ * Number used to identify implementation
  * version of `libcoopgamma_ramps*_t`, if they
  * are ever modified, this number is increased
  */
@@ -260,6 +267,42 @@ typedef enum libcoopgamma_lifespan
   LIBCOOPGAMMA_UNTIL_REMOVAL = 2
   
 } libcoopgamma_lifespan_t;
+
+
+/**
+ * Colourspaces
+ */
+typedef enum libcoopgamma_colourspace
+{
+  /**
+   * The colourspace is unknown
+   * 
+   * This value will always be 0
+   */
+  LIBCOOPGAMMA_UNKNOWN = 0,
+  
+  /**
+   * sRGB (Standard RGB)
+   */
+  LIBCOOPGAMMA_SRGB = 1,
+  
+  /**
+   * RGB other than sRGB
+   */
+  LIBCOOPGAMMA_RGB = 2,
+  
+  /**
+   * Non-RGB multicolour
+   */
+  LIBCOOPGAMMA_NON_RGB = 3,
+  
+  /**
+   * Monochrome, greyscale, or some
+   * other singlecolour scale
+   */
+  LIBCOOPGAMMA_GREY = 4
+  
+} libcoopgamma_colourspace_t;
 
 
 /**
@@ -470,6 +513,70 @@ typedef struct libcoopgamma_crtc_info
    * The number of stops in the blue ramp
    */
   size_t blue_size;
+  
+  /**
+   * The monitor's colurspace
+   */
+  libcoopgamma_colourspace_t colourspace;
+  
+  /**
+   * Whether `.red_x`, `.red_y`, `.green_x`,
+   * `.green_y`, `.blue_x`, `.blue_y`,
+   * `.white_x`, and `.white_y` are set.
+   * 
+   * If this is true, but the colourspace
+   * is not RGB (or sRGB), there is something
+   * wrong. Please also check the colourspace.
+   */
+  int have_gamut;
+  
+  /**
+   * The x-value (CIE xyY) of the monitor's
+   * red colour, multiplied by 1024
+   */
+  unsigned red_x;
+  
+  /**
+   * The y-value (CIE xyY) of the monitor's
+   * red colour, multiplied by 1024
+   */
+  unsigned red_y;
+  
+  /**
+   * The x-value (CIE xyY) of the monitor's
+   * green colour, multiplied by 1024
+   */
+  unsigned green_x;
+  
+  /**
+   * The y-value (CIE xyY) of the monitor's
+   * green colour, multiplied by 1024
+   */
+  unsigned green_y;
+  
+  /**
+   * The x-value (CIE xyY) of the monitor's
+   * blue colour, multiplied by 1024
+   */
+  unsigned blue_x;
+  
+  /**
+   * The y-value (CIE xyY) of the monitor's
+   * blue colour, multiplied by 1024
+   */
+  unsigned blue_y;
+  
+  /**
+   * The x-value (CIE xyY) of the monitor's
+   * default white point, multiplied by 1024
+   */
+  unsigned white_x;
+  
+  /**
+   * The y-value (CIE xyY) of the monitor's
+   * default white point, multiplied by 1024
+   */
+  unsigned white_y;
   
 } libcoopgamma_crtc_info_t;
 

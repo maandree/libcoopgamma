@@ -120,6 +120,30 @@ Only remove the filter when it is explicitly requested.
 The
 .B <libcoopgamma.h>
 header defines
+.I "enum libcoopgamma_colourspace"
+with the alias
+.I libcoopgamma_colourspace_t
+and the following distinct values:
+.TP
+.BR LIBCOOPGAMMA_UNKNOWN " = 0"
+The monitor's colourspace is unknown.
+.TP
+.BR LIBCOOPGAMMA_SRGB " > 0"
+The monitor uses sRGB as its colourspace.
+.TP
+.BR LIBCOOPGAMMA_RGB " > 0"
+The monitor uses an RGB colourspace other than sRGB.
+.TP
+.BR LIBCOOPGAMMA_NON_RGB " > 0"
+The monitor uses a non-RGB multicolour colourspace.
+.TP
+.BR LIBCOOPGAMMA_GREY " > 0"
+The monitor uses a singlecolour scale colourspace,
+possibility greyscale, or is monochrome.
+.P
+The
+.B <libcoopgamma.h>
+header defines
 .I "struct libcoopgamma_ramps8"
 .RI ( libcoopgamma_ramps8_t ),
 .I "struct libcoopgamma_ramps16"
@@ -250,6 +274,59 @@ The number of stops in the green ramp.
 .TP
 .B "size_t blue_size"
 The number of stops in the blue ramp.
+.TP
+.B "enum libcoopgamma_colourspace colourspace"
+The monitor's colurspace.
+.TP
+.B "int have_gamut"
+Is the gamut of the monitor known?
+If, and only if, so,
+.IR .red_x ,
+.IR .red_y ,
+.IR .green_x ,
+.IR .green_y ,
+.IR .blue_x ,
+.IR .blue_y ,
+.IR .white_x ,
+and
+.IR .white_y
+are set. Unless the monitor uses an
+RGB colourspace, this value should
+be false, but there is no guarantee
+of this, you have to check that the
+colourspace is an RGB colourspace.
+.TP
+.B "unsigned red_x"
+The x-value (CIE xyY) of the monitor's
+red colour, multiplied by 1024.
+.TP
+.B "unsigned red_y"
+The y-value (CIE xyY) of the monitor's
+red colour, multiplied by 1024.
+.TP
+.B "unsigned green_x"
+The x-value (CIE xyY) of the monitor's
+green colour, multiplied by 1024.
+.TP
+.B "unsigned green_y"
+The y-value (CIE xyY) of the monitor's
+green colour, multiplied by 1024.
+.TP
+.B "unsigned blue_x"
+The x-value (CIE xyY) of the monitor's
+blue colour, multiplied by 1024.
+.TP
+.B "unsigned blue_y"
+The y-value (CIE xyY) of the monitor's
+blue colour, multiplied by 1024.
+.TP
+.B "unsigned white_x"
+The x-value (CIE xyY) of the monitor's
+default white point, multiplied by 1024.
+.TP
+.B "unsigned white_y"
+The y-value (CIE xyY) of the monitor's
+default white point, multiplied by 1024.
 .P
 The
 .B <libcoopgamma.h>
