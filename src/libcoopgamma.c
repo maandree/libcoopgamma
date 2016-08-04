@@ -1523,14 +1523,15 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
   
   if (ctx->inbound_head == ctx->inbound_tail)
     ctx->inbound_head = ctx->inbound_tail = ctx->curline = 0;
-  
-  if (ctx->inbound_tail > 0)
+  else if (ctx->inbound_tail > 0)
     {
       memmove(ctx->inbound, ctx->inbound + ctx->inbound_tail, ctx->inbound_head -= ctx->inbound_tail);
       ctx->curline -= ctx->inbound_tail;
       ctx->inbound_tail = 0;
     }
   
+  if (ctx->inbound_head)
+    goto skip_recv;
   for (;;)
     {
       if (ctx->inbound_head == ctx->inbound_size)
@@ -1552,6 +1553,7 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
 	}
       ctx->inbound_head += (size_t)got;
       
+    skip_recv:
       while (ctx->have_all_headers == 0)
 	{
 	  line = ctx->inbound + ctx->curline;
@@ -1686,9 +1688,9 @@ static int send_message(libcoopgamma_context_t* restrict ctx, char* msg, size_t 
 	}
       memcpy(ctx->outbound + ctx->outbound_head, msg, n);
       ctx->outbound_head += n;
-      ctx->message_id += 1;
       free(msg);
     }
+  ctx->message_id += 1;
   return libcoopgamma_flush(ctx);
 }
 
