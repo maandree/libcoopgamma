@@ -1461,7 +1461,7 @@ int libcoopgamma_flush(libcoopgamma_context_t* restrict);
  *                    received a corrupt message and the context has been tainted
  *                    beyond recover.
  */
-LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__, __leaf__)))
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__(1, 4), __leaf__)))
 int libcoopgamma_synchronise(libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict,
 			     size_t, size_t* restrict);
 
