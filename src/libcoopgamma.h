@@ -1465,6 +1465,14 @@ LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__(1, 4), __leaf__)))
 int libcoopgamma_synchronise(libcoopgamma_context_t* restrict, libcoopgamma_async_context_t* restrict,
 			     size_t, size_t* restrict);
 
+/**
+ * Tell the library that you will not be parsing a receive message
+ * 
+ * @param  ctx  The state of the library, must be connected
+ */
+LIBCOOPGAMMA_GCC_ONLY(__attribute__((__nonnull__)))
+void libcoopgamma_skip_message(libcoopgamma_context_t* restrict);
+
 
 /**
  * List all available CRTC:s, send request part

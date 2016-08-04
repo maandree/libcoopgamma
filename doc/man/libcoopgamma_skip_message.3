@@ -1,0 +1,30 @@
+.TH LIBCOOPGAMMA_SKIP_MESSAGE 3 LIBCOOPGAMMA
+.SH "NAME"
+libcoopgamma_skip_message - Skip a received message
+.SH "SYNOPSIS"
+.nf
+#include <libcoopgamma.h>
+
+void libcoopgamma_skip_message(libcoopgamma_context_t *restrict \fIctx\fP);
+.fi
+.P
+Link with
+.IR -lcoopgamma .
+.SH "DESCRIPTION"
+The
+.BR libcoopgamma_skip_message ()
+function is used to tell the library that you
+are not interested in a message recieved for
+.IR ctx .
+This can be the case if
+.BR libcoopgamma_synchronise (3)
+selected an asynchronous call context that
+is inactive.
+.SH "SEE ALSO"
+.BR libcoopgamma_flush (3),
+.BR libcoopgamma_set_nonblocking (3),
+.BR libcoopgamma_synchronise (3),
+.BR libcoopgamma_get_crtcs_sync (3),
+.BR libcoopgamma_get_gamma_info_sync (3),
+.BR libcoopgamma_get_gamma_sync (3),
+.BR libcoopgamma_set_gamma_sync (3)

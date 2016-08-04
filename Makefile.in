@@ -56,7 +56,7 @@ _MAN_3 = $(foreach T,$(__TYPES),$(foreach F,destroy initialise marshal unmarshal
          $(foreach P,$(__PROTOCOLS),$(foreach F,recv send sync,libcoopgamma_$(P)_$(F))) \
          libcoopgamma_connect          libcoopgamma_flush         libcoopgamma_get_method_and_site \
          libcoopgamma_get_methods      libcoopgamma_get_pid_file  libcoopgamma_get_socket_file \
-         libcoopgamma_set_nonblocking  libcoopgamma_synchronise
+         libcoopgamma_set_nonblocking  libcoopgamma_synchronise   libcoopgamma_skip_message
 _MAN_7 = libcoopgamma
 
 # Used by mk/copy.mk

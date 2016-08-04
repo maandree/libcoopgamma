@@ -1742,6 +1742,19 @@ static char* next_payload(libcoopgamma_context_t* restrict ctx, size_t* n)
 
 
 /**
+ * Tell the library that you will not be parsing a receive message
+ * 
+ * @param  ctx  The state of the library, must be connected
+ */
+void libcoopgamma_skip_message(libcoopgamma_context_t* restrict ctx)
+{
+  size_t _n;
+  while (*next_header(ctx));
+  (void) next_payload(ctx, &_n);
+}
+
+
+/**
  * Check whether the server sent an error, if so copy it to `ctx`
  * 
  * This function will also reports EBADMSG if the message ID
