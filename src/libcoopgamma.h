@@ -515,7 +515,7 @@ typedef struct libcoopgamma_crtc_info
   size_t blue_size;
   
   /**
-   * The monitor's colurspace
+   * The monitor's colourspace
    */
   libcoopgamma_colourspace_t colourspace;
   
