@@ -2510,22 +2510,22 @@ int libcoopgamma_set_gamma_send(const libcoopgamma_filter_t* restrict filter,
       goto fail;
     }
   
-  switch (filter->depth)
-    {
-    case LIBCOOPGAMMA_FLOAT:   stopwidth = sizeof(float);   break;
-    case LIBCOOPGAMMA_DOUBLE:  stopwidth = sizeof(double);  break;
-    default: INTEGRAL_DEPTHS
-      if ((filter->depth <= 0) || ((filter->depth & 7) != 0))
-	{
-	  errno = EINVAL;
-	  goto fail;
-	}
-      stopwidth = (size_t)(filter->depth / 8);
-      break;
-    }
-  
   if (filter->lifespan != LIBCOOPGAMMA_REMOVE)
     {
+      switch (filter->depth)
+	{
+	case LIBCOOPGAMMA_FLOAT:   stopwidth = sizeof(float);   break;
+	case LIBCOOPGAMMA_DOUBLE:  stopwidth = sizeof(double);  break;
+	default: INTEGRAL_DEPTHS
+	    if ((filter->depth <= 0) || ((filter->depth & 7) != 0))
+	      {
+		errno = EINVAL;
+		goto fail;
+	      }
+	  stopwidth = (size_t)(filter->depth / 8);
+	  break;
+	}
+      
       payload_size  = filter->ramps.u8.red_size;
       payload_size += filter->ramps.u8.green_size;
       payload_size += filter->ramps.u8.blue_size;
