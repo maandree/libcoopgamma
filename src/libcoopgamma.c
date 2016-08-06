@@ -1597,7 +1597,7 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
 	  p = memchr(line, '\n', ctx->inbound_head - ctx->curline);
 	  if (p == NULL)
 	    break;
-	  if (memchr(line, '\0', ctx->inbound_head - ctx->curline) != NULL)
+	  if (memchr(line, '\0', (size_t)(p - line)) != NULL)
 	    ctx->bad_message = 1;
 	  *p++ = '\0';
 	  ctx->curline = (size_t)(p - ctx->inbound);
@@ -2412,6 +2412,9 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict table,
 	  off += len;
 	  if (off + clutsize > n)
 	    goto bad;
+	  table->filters[i].ramps.u8.red_size   = table->red_size;
+	  table->filters[i].ramps.u8.green_size = table->green_size;
+	  table->filters[i].ramps.u8.blue_size  = table->blue_size;
 	  if (libcoopgamma_ramps_initialise_(&(table->filters[i].ramps), width) < 0)
 	    goto fail;
 	  memcpy(table->filters->ramps.u8.red, payload + off, clutsize);
