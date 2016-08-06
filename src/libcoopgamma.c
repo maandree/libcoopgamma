@@ -34,6 +34,11 @@
 
 
 
+#if !defined(COOPGAMMAD)
+# define COOPGAMMAD "coopgammad"
+#endif
+
+
 
 #if defined(__clang__)
 # pragma GCC diagnostic ignored "-Wdocumentation"
@@ -1081,7 +1086,7 @@ char** libcoopgamma_get_methods(void)
  */
 static char* libcoopgamma_query(const char* restrict method, const char* restrict site, const char* restrict arg)
 {
-  const char* (args[7]) = {"coopgammad", arg};
+  const char* (args[7]) = {COOPGAMMAD, arg};
   size_t i = 2, n = 0, size = 0;
   int pipe_rw[2] = { -1, -1 };
   pid_t pid;
@@ -1114,7 +1119,7 @@ static char* libcoopgamma_query(const char* restrict method, const char* restric
 # pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wcast-qual"
 #endif
-      execvp("coopgammad", (char* const*)(args));
+      execvp(COOPGAMMAD, (char* const*)(args));
 #if defined(__GNUC__)
 # pragma GCC diagnostic pop
 #endif
@@ -1354,7 +1359,7 @@ char* libcoopgamma_get_socket_file(const char* restrict method, const char* rest
 int libcoopgamma_connect(const char* restrict method, const char* restrict site,
 			 libcoopgamma_context_t* restrict ctx)
 {
-  const char* (args[6]) = {"coopgammad"};
+  const char* (args[6]) = {COOPGAMMAD};
   struct sockaddr_un address;
   char* path;
   int saved_errno;
@@ -1400,7 +1405,7 @@ int libcoopgamma_connect(const char* restrict method, const char* restrict site,
 # pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wcast-qual"
 #endif
-	      execvp("coopgammad", (char* const*)(args));
+	      execvp(COOPGAMMAD, (char* const*)(args));
 #if defined(__GNUC__)
 # pragma GCC diagnostic pop
 #endif
