@@ -98,7 +98,7 @@ endif
 .PHONY: uninstall-man
 uninstall-man:
 ifndef __MAN_COMMAND
-	-$(Q)$(RM) -- $(foreach S,$(_MAN_PAGE_SECTIONS),$(foreach P,$(_MAN_$(S)),"$(DESTDIR)$(MANDIR)/$(MAN$(S))/$(P).$(MAN$(S)EXT)"))
+	-$(Q)$(RM) -- $(foreach S,$(_MAN_PAGE_SECTIONS),$(foreach P,$(_MAN_$(S)),"$(DESTDIR)$(MANDIR)/$(MAN$(S))/$(P)$(MAN$(S)EXT)"))
 	-$(Q)$(RM) -- $(foreach L,$(MAN_LOCALES),$(foreach S,$(_MAN_PAGE_SECTIONS),$(foreach P,$(_MAN_$(L)_$(S)),"$(DESTDIR)$(MANDIR)/$(L)/$(MAN$(S))/$(P)$(MAN$(S)EXT)")))
 endif
 ifdef __MAN_COMMAND
