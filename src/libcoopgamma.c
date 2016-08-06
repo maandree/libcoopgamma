@@ -1561,14 +1561,14 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
 	    errno = ECONNRESET;
 	  return -1;
 	}
-
+      
 #ifdef DEBUG_MODE
       fprintf(stderr, "\033[32m");
       fwrite(ctx->inbound + ctx->inbound_head, (size_t)got, 1, stderr);
       fprintf(stderr, "\033[m");
       fflush(stderr);
 #endif
-
+      
       ctx->inbound_head += (size_t)got;
       
     skip_recv:
