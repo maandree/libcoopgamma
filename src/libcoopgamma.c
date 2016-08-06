@@ -1855,6 +1855,7 @@ static int check_error(libcoopgamma_context_t* restrict ctx, libcoopgamma_async_
 		  bad = 1;
 		  continue;
 		}
+	      value += 7;
 	    }
 	  ctx->error.number = (uint64_t)atoll(value);
 	  sprintf(temp, "%" PRIu64, ctx->error.number);
@@ -1872,7 +1873,7 @@ static int check_error(libcoopgamma_context_t* restrict ctx, libcoopgamma_async_
   payload = next_payload(ctx, &n);
   if (payload != NULL)
     {
-      if (memchr(ctx, '\0', n) || (payload[n - 1] != '\n'))
+      if (memchr(payload, '\0', n) || (payload[n - 1] != '\n'))
 	goto badmsg;
       ctx->error.description = malloc(n);
       if (ctx->error.description == NULL)
