@@ -2358,7 +2358,8 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict table,
   if (bad || (have_depth != 1) || (have_red_size != 1) || (have_green_size != 1) ||
       (have_blue_size != 1) || (async->coalesce ? (have_tables > 1) : (have_tables == 0)) ||
       (((payload == NULL) || (n == 0)) && (async->coalesce || (table->filter_count > 0))) ||
-      ((n > 0) && (table->filter_count == 0)))
+      ((n > 0) && have_tables && (table->filter_count == 0)) ||
+      (async->coalesce && have_tables && (table->filter_count != 1)))
     goto bad;
   
   switch (table->depth)
@@ -2384,9 +2385,13 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict table,
 	goto fail;
       table->filters->priority = 0;
       table->filters->class = NULL;
+      table->filters->ramps.u8.red_size   = table->red_size;
+      table->filters->ramps.u8.green_size = table->green_size;
+      table->filters->ramps.u8.blue_size  = table->blue_size;
       if (libcoopgamma_ramps_initialise_(&(table->filters->ramps), width) < 0)
 	goto fail;
       memcpy(table->filters->ramps.u8.red, payload, clutsize);
+      table->filter_count = 1;
     }
   else if (table->filter_count == 0)
     table->filters = NULL;
