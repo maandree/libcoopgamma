@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -826,6 +827,7 @@ int libcoopgamma_context_initialise(libcoopgamma_context_t* restrict this)
 {
   memset(this, 0, sizeof(*this));
   this->fd = -1;
+  this->blocking = 1;
   return 0;
 }
 
@@ -879,6 +881,7 @@ size_t libcoopgamma_context_marshal(const libcoopgamma_context_t* restrict this,
   marshal_prim(this->in_response_to, uint32_t);
   marshal_prim(this->have_all_headers, int);
   marshal_prim(this->bad_message, int);
+  marshal_prim(this->blocking, int);
   MARSHAL_EPILOGUE;
 }
 
@@ -916,6 +919,7 @@ int libcoopgamma_context_unmarshal(libcoopgamma_context_t* restrict this,
   unmarshal_prim(this->in_response_to, uint32_t);
   unmarshal_prim(this->have_all_headers, int);
   unmarshal_prim(this->bad_message, int);
+  unmarshal_prim(this->blocking, int);
   UNMARSHAL_EPILOGUE;
 }
 
@@ -1358,6 +1362,8 @@ int libcoopgamma_connect(const char* restrict method, const char* restrict site,
   pid_t pid;
   size_t i = 1;
   
+  ctx->blocking = 1;
+  
   if (method != NULL)  args[i++] = "-m", args[i++] = method;
   if (site   != NULL)  args[i++] = "-s", args[i++] = site;
   args[i] = NULL;
@@ -1449,7 +1455,10 @@ int libcoopgamma_set_nonblocking(libcoopgamma_context_t* restrict ctx, int nonbl
     flags |= O_NONBLOCK;
   else
     flags &= ~O_NONBLOCK;
-  return -(fcntl(ctx->fd, F_SETFL, flags) == -1);
+  if (fcntl(ctx->fd, F_SETFL, flags) == -1)
+    return -1;
+  ctx->blocking = !nonblocking;
+  return 0;
 }
 
 
@@ -1530,6 +1539,7 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
   char* p;
   char* line;
   char* value;
+  struct pollfd pollfd;
   
   if (ctx->inbound_head == ctx->inbound_tail)
     ctx->inbound_head = ctx->inbound_tail = ctx->curline = 0;
@@ -1539,6 +1549,9 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
       ctx->curline -= ctx->inbound_tail;
       ctx->inbound_tail = 0;
     }
+  
+  pollfd.fd = ctx->fd;
+  pollfd.events = POLLIN | POLLRDNORM | POLLRDBAND | POLLPRI;
   
   if (ctx->inbound_head)
     goto skip_recv;
@@ -1554,6 +1567,12 @@ int libcoopgamma_synchronise(libcoopgamma_context_t* restrict ctx,
 	  ctx->inbound_size = new_size;
 	}
       
+      if (ctx->blocking)
+	{
+	  pollfd.revents = 0;
+	  if (poll(&pollfd, (nfds_t)1, -1) < 0)
+	    return -1;
+	}
       got = recv(ctx->fd, ctx->inbound + ctx->inbound_head, ctx->inbound_size - ctx->inbound_head, 0);
       if (got <= 0)
 	{

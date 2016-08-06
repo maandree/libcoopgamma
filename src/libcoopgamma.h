@@ -763,9 +763,10 @@ typedef struct libcoopgamma_context
    */
   int bad_message;
   
-#if INT_MAX != LONG_MAX
-  int padding__;
-#endif
+  /**
+   * Is communication blocking?
+   */
+  int blocking;
   
   /**
    * Message ID of the next message
