@@ -1475,9 +1475,11 @@ int libcoopgamma_flush(libcoopgamma_context_t* restrict ctx)
     {
       sendsize = ctx->outbound_head - ctx->outbound_tail;
       sendsize = sendsize < chunksize ? sendsize : chunksize;
-      sent = send(ctx->fd, ctx->outbound + ctx->outbound_tail, sendsize, 0);
+      sent = send(ctx->fd, ctx->outbound + ctx->outbound_tail, sendsize, MSG_NOSIGNAL);
       if (sent < 0)
 	{
+	  if (errno == EPIPE)
+	    errno = ECONNRESET;
 	  if (errno != EMSGSIZE)
 	    return -1;
 	  if ((chunksize >>= 1) == 0)
