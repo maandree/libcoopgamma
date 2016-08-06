@@ -2021,7 +2021,7 @@ char** libcoopgamma_get_crtcs_recv(libcoopgamma_context_t* restrict ctx,
 char** libcoopgamma_get_crtcs_sync(libcoopgamma_context_t* restrict ctx)
 {
   SYNC_CALL(libcoopgamma_get_crtcs_send(ctx, &async),
-	    libcoopgamma_get_crtcs_recv(ctx, &async), NULL);
+	    libcoopgamma_get_crtcs_recv(ctx, &async), (copy_errno(ctx), NULL));
 }
 
 
@@ -2229,7 +2229,7 @@ int libcoopgamma_get_gamma_info_sync(const char* restrict ctrc, libcoopgamma_crt
 				     libcoopgamma_context_t* restrict ctx)
 {
   SYNC_CALL(libcoopgamma_get_gamma_info_send(ctrc, ctx, &async),
-	    libcoopgamma_get_gamma_info_recv(info, ctx, &async), -1);
+	    libcoopgamma_get_gamma_info_recv(info, ctx, &async), (copy_errno(ctx), -1));
 }
 
 
@@ -2357,7 +2357,8 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict table,
   
   if (bad || (have_depth != 1) || (have_red_size != 1) || (have_green_size != 1) ||
       (have_blue_size != 1) || (async->coalesce ? (have_tables > 1) : (have_tables == 0)) ||
-      (payload == NULL))
+      (((payload == NULL) || (n == 0)) && (async->coalesce || (table->filter_count > 0))) ||
+      ((n > 0) && (table->filter_count == 0)))
     goto bad;
   
   switch (table->depth)
@@ -2387,6 +2388,8 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict table,
 	goto fail;
       memcpy(table->filters->ramps.u8.red, payload, clutsize);
     }
+  else if (table->filter_count == 0)
+    table->filters = NULL;
   else
     {
       size_t off = 0, len;
@@ -2448,7 +2451,7 @@ int libcoopgamma_get_gamma_sync(const libcoopgamma_filter_query_t* restrict quer
 				libcoopgamma_context_t* restrict ctx)
 {
   SYNC_CALL(libcoopgamma_get_gamma_send(query, ctx, &async),
-	    libcoopgamma_get_gamma_recv(table, ctx, &async), -1);
+	    libcoopgamma_get_gamma_recv(table, ctx, &async), (copy_errno(ctx), -1));
 }
 
 
@@ -2588,7 +2591,7 @@ int libcoopgamma_set_gamma_sync(const libcoopgamma_filter_t* restrict filter,
 				libcoopgamma_context_t* restrict ctx)
 {
   SYNC_CALL(libcoopgamma_set_gamma_send(filter, ctx, &async),
-	    libcoopgamma_set_gamma_recv(ctx, &async), -1);
+	    libcoopgamma_set_gamma_recv(ctx, &async), (copy_errno(ctx), -1));
 }
 
 
