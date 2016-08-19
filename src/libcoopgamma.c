@@ -115,7 +115,7 @@ const char* argv0 __attribute__((weak)) = "libcoopgamma";
 
 #define marshal_string(datum)						\
   ((datum) == NULL ? marshal_prim(1, char) :				\
-   (marshal_prim(0, char), marshal_buffer(datum, strlen(datum) + 1)))
+   (marshal_prim(0, char), marshal_buffer((datum), strlen(datum) + 1)))
 
 #define unmarshal_string(datum)					\
   do								\
@@ -816,6 +816,7 @@ int libcoopgamma_error_unmarshal(libcoopgamma_error_t* restrict this,
   unmarshal_version(LIBCOOPGAMMA_ERROR_VERSION);
   unmarshal_prim(this->number, uint64_t);
   unmarshal_prim(this->custom, int);
+  unmarshal_prim(this->server_side, int);
   unmarshal_string(this->description);
   UNMARSHAL_EPILOGUE;
 }
