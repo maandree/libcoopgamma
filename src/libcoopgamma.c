@@ -92,9 +92,9 @@ const char* argv0 __attribute__((weak)) = "libcoopgamma";
     {							\
       int version__;					\
       unmarshal_prim(version__, int);			\
-      if (version__ < version)				\
+      if (version__ < (version))			\
 	return LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE;	\
-      if (version__ > version)				\
+      if (version__ > (version))			\
 	return LIBCOOPGAMMA_INCOMPATIBLE_UPGRADE;	\
     }							\
   while (0)
@@ -114,8 +114,8 @@ const char* argv0 __attribute__((weak)) = "libcoopgamma";
   while (0)
 
 #define marshal_string(datum)						\
-  ((datum) == NULL ? marshal_prim(1, char) :				\
-   (marshal_prim(0, char), marshal_buffer((datum), strlen(datum) + 1)))
+  ((datum) == NULL ? marshal_prim(0, char) :				\
+   (marshal_prim(1, char), marshal_buffer((datum), strlen(datum) + 1)))
 
 #define unmarshal_string(datum)					\
   do								\
@@ -256,6 +256,8 @@ int libcoopgamma_ramps_unmarshal_(void* restrict this, const void* restrict vbuf
   unmarshal_prim(this8->green_size, size_t);
   unmarshal_prim(this8->blue_size, size_t);
   unmarshal_buffer(this8->red, (this8->red_size + this8->green_size + this8->blue_size) * width);
+  this8->green = this8->red + this8->red_size * width;
+  this8->blue = this8->green + this8->green_size * width;
   UNMARSHAL_EPILOGUE;
 }
 
@@ -879,9 +881,9 @@ size_t libcoopgamma_context_marshal(const libcoopgamma_context_t* restrict this,
   off += libcoopgamma_error_marshal(&(this->error), SUBBUF);
   marshal_prim(this->message_id, uint32_t);
   marshal_prim(this->outbound_head - this->outbound_tail, size_t);
-  marshal_buffer(this->outbound + this->outbound_head, this->outbound_head - this->outbound_tail);
+  marshal_buffer(this->outbound + this->outbound_tail, this->outbound_head - this->outbound_tail);
   marshal_prim(this->inbound_head - this->inbound_tail, size_t);
-  marshal_buffer(this->inbound + this->inbound_head, this->inbound_head - this->inbound_tail);
+  marshal_buffer(this->inbound + this->inbound_tail, this->inbound_head - this->inbound_tail);
   marshal_prim(this->length, size_t);
   marshal_prim(this->curline, size_t);
   marshal_prim(this->in_response_to, uint32_t);
@@ -915,9 +917,10 @@ int libcoopgamma_context_unmarshal(libcoopgamma_context_t* restrict this,
     return r;
   off += n;
   unmarshal_prim(this->message_id, uint32_t);
-  unmarshal_prim(this->inbound_head, size_t);
+  unmarshal_prim(this->outbound_head, size_t);
   this->outbound_size = this->outbound_head;
   unmarshal_buffer(this->outbound, this->outbound_head);
+  unmarshal_prim(this->inbound_head, size_t);
   this->inbound_size = this->inbound_head;
   unmarshal_buffer(this->inbound, this->inbound_head);
   unmarshal_prim(this->length, size_t);
