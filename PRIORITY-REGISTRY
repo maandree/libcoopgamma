@@ -1,0 +1,10 @@
+PROGRAM		DEFAULT PRIORITY
+
+cg-limits	-0x 4000 0000 0000 0000
+cg-gamma	 0x 0000 0000 0000 0000
+cg-icc		 0x 0000 0000 0000 0000
+cg-rainbow	 0x 1000 0000 0000 0000
+cg-sleepmode	 0x 1800 0000 0000 0000
+cg-brilliance	 0x 2000 0000 0000 0000
+cg-negative	 0x 4000 0000 0000 0000
+cg-darkroom	 0x 6000 0000 0000 0000
