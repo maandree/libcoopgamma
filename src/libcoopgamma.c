@@ -2415,7 +2415,7 @@ int libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t* restrict table,
 	{
 	  if (off + sizeof(int64_t) > n)
 	    goto bad;
-	  table->filters[i].priority = *(int64_t*)payload;
+	  table->filters[i].priority = *(int64_t*)(payload + off);
 	  off += sizeof(int64_t);
 	  if (memchr(payload + off, '\0', n - off) == NULL)
 	    goto bad;
