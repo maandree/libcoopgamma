@@ -59,7 +59,7 @@ main(void)
 	libcoopgamma_context_t ctx1, ctx2;
 	libcoopgamma_async_context_t async1, async2;
 	size_t n, m, i;
-	char* buf;
+	char *buf;
 
 	filter1.priority = INT64_MIN;
 	filter1.crtc = (char []){"CRTC"};
