@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef __GNUC__
+# pragma GCC diagnostic ignored "-Wunsuffixed-float-constants"
+#endif
+
 
 static int
 streq(const char *a, const char *b)
@@ -58,8 +62,8 @@ main(void)
 	char* buf;
 
 	filter1.priority = INT64_MIN;
-	filter1.crtc = "CRTC";
-	filter1.class = "A::B::C::D";
+	filter1.crtc = (char []){"CRTC"};
+	filter1.class = (char []){"A::B::C::D"};
 	filter1.lifespan = LIBCOOPGAMMA_UNTIL_REMOVAL;
 	filter1.depth = LIBCOOPGAMMA_DOUBLE;
 	filter1.ramps.d.red_size = 4;
@@ -90,7 +94,7 @@ main(void)
 
 	query1.high_priority = INT64_MIN;
 	query1.low_priority = INT64_MIN;
-	query1.crtc = "crtc";
+	query1.crtc = (char []){"crtc"};
 	query1.coalesce = 1;
 
 	table1.red_size = 4;
@@ -99,23 +103,27 @@ main(void)
 	table1.filter_count = 2;
 	table1.filters = (libcoopgamma_queried_filter_t[]){
 		{
-		 .priority = UINT64_MAX,
-		 .class = "a::b::c",
+		 .priority = INT64_MAX,
+		 .class = (char []){"a::b::c"},
 		 .ramps.d = {.red_size = 4,
 			     .green_size = 5,
 			     .blue_size = 6,
 			     .red = (double[]){0.0, 0.1, 0.2, 0.5,
 			                       0.3, 0.11, 0.22, 0.45, 0.9,
-			                       -1, -0.5, 0, 0.5, 1, 1.5}}
+			                       -1, -0.5, 0, 0.5, 1, 1.5},
+		                .green = NULL, /* set later */
+		                .blue = NULL /* set later */}
 		}, {
-		    .priority = UINT64_MAX - 1,
+		    .priority = INT64_MAX - 1,
 		    .class = NULL,
 		    .ramps.d = {.red_size = 4,
 				.green_size = 5,
 				.blue_size = 6,
 				.red = (double[]){0.02, 0.12, 0.22, 0.52,
 				                  0.32, 0.112, 0.222, 0.452, 0.92,
-				                  -12, -0.52, 0.2, 0.52, 12, 1.52}}
+				                  -12, -0.52, 0.2, 0.52, 12, 1.52},
+		                .green = NULL, /* set later */
+		                .blue = NULL /* set later */}
 		}
 	};
 	table1.depth = LIBCOOPGAMMA_DOUBLE;
@@ -127,18 +135,18 @@ main(void)
 	ctx1.error.number = UINT64_MAX;
 	ctx1.error.custom = 1;
 	ctx1.error.server_side = 0;
-	ctx1.error.description = "description";
+	ctx1.error.description = (char []){"description"};
 	ctx1.fd = 3;
 	ctx1.have_all_headers = 1;
 	ctx1.bad_message = 0;
 	ctx1.blocking = 2;
 	ctx1.message_id = UINT32_MAX;
 	ctx1.in_response_to = UINT32_MAX - 1;
-	ctx1.outbound = "0123456789";
+	ctx1.outbound = (char []){"0123456789"};
 	ctx1.outbound_head = 7;
 	ctx1.outbound_tail = 2;
 	ctx1.outbound_size = 10;
-	ctx1.inbound = "abcdefghi";
+	ctx1.inbound = (char []){"abcdefghi"};
 	ctx1.inbound_head = 6;
 	ctx1.inbound_tail = 3;
 	ctx1.inbound_size = 9;
