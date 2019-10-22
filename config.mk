@@ -1,0 +1,8 @@
+PREFIX = /usr
+MANPREFIX = $(PREFIX)/share/man
+
+CC = cc
+
+CPPFLAGS = -D_DEFAULT_SOURCE -D_GNU_SOURCE
+CFLAGS   = -std=c99 -Wall -Og -g
+LDFLAGS  =
