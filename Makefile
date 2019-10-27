@@ -11,7 +11,7 @@ include $(CONFIGFILE)
 include $(OSCONFIGFILE)
 include man.mk
 
-all: libcoopgamma.a libcoopgamma.so test
+all: libcoopgamma.a libcoopgamma.$(LIBEXT) test
 
 .c.o:
 	$(CC) -c -o $@ $< $(CPPFLAGS) $(CFLAGS)
