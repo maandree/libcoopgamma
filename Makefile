@@ -1,15 +1,22 @@
 .POSIX:
 
+CONFIGFILE = config.mk
+include $(CONFIGFILE)
+
+OS = linux
+# Linux:   linux
+# Mac OS:  macos
+# Windows: windows
+include mk/$(OS).mk
+
+
 LIB_MAJOR = 1
 LIB_MINOR = 2
 LIB_VERSION = $(LIB_MAJOR).$(LIB_MINOR)
 
-CONFIGFILE = config.mk
-OSCONFIGFILE = linux.mk
 
-include $(CONFIGFILE)
-include $(OSCONFIGFILE)
 include man.mk
+
 
 all: libcoopgamma.a libcoopgamma.$(LIBEXT) test
 
@@ -41,6 +48,7 @@ install: libcoopgamma.a libcoopgamma.$(LIBEXT)
 	cp -- libcoopgamma.h "$(DESTDIR)$(PREFIX)/include"
 	cp -- libcoopgamma.a "$(DESTDIR)$(PREFIX)/lib"
 	cp -- libcoopgamma.$(LIBEXT) "$(DESTDIR)$(PREFIX)/lib/libcoopgamma.$(LIBMINOREXT)"
+	$(FIX_INSTALL_NAME) "$(DESTDIR)$(PREFIX)/lib/libcoopgamma.$(LIBMINOREXT)"
 	ln -sf -- libcoopgamma.$(LIBMINOREXT) "$(DESTDIR)$(PREFIX)/lib/libcoopgamma.$(LIBMAJOREXT)"
 	ln -sf -- libcoopgamma.$(LIBMINOREXT) "$(DESTDIR)$(PREFIX)/lib/libcoopgamma.$(LIBEXT)"
 	cp -- $(MAN0) "$(DESTDIR)$(MANPREFIX)/man0"
