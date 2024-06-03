@@ -2358,7 +2358,7 @@ libcoopgamma_get_gamma_recv(libcoopgamma_filter_table_t *restrict table, libcoop
 			table->filters[i].ramps.u8.blue_size  = table->blue_size;
 			if (libcoopgamma_ramps_initialise_(&(table->filters[i].ramps), width) < 0)
 				goto fail;
-			memcpy(table->filters->ramps.u8.red, payload + off, clutsize);
+			memcpy(table->filters[i].ramps.u8.red, payload + off, clutsize);
 			off += clutsize;
 		}
 		if (off != n)
