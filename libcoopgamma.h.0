@@ -453,6 +453,8 @@ function call.
 .B "int fd"
 File descriptor for the socket that connects
 the client to the server.
+.B -1
+if no file descriptor is used.
 .P
 The
 .B <libcoopgamma.h>

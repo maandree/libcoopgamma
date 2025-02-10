@@ -15,13 +15,89 @@ LIB_MINOR = 2
 LIB_VERSION = $(LIB_MAJOR).$(LIB_MINOR)
 
 
-OBJ = libcoopgamma.o
+OBJ_MAN3 =\
+	libcoopgamma_async_context_destroy.o\
+	libcoopgamma_async_context_initialise.o\
+	libcoopgamma_async_context_marshal.o\
+	libcoopgamma_async_context_unmarshal.o\
+	libcoopgamma_connect.o\
+	libcoopgamma_context_destroy.o\
+	libcoopgamma_context_initialise.o\
+	libcoopgamma_context_marshal.o\
+	libcoopgamma_context_unmarshal.o\
+	libcoopgamma_crtc_info_destroy.o\
+	libcoopgamma_crtc_info_initialise.o\
+	libcoopgamma_crtc_info_marshal.o\
+	libcoopgamma_crtc_info_unmarshal.o\
+	libcoopgamma_error_destroy.o\
+	libcoopgamma_error_initialise.o\
+	libcoopgamma_error_marshal.o\
+	libcoopgamma_error_unmarshal.o\
+	libcoopgamma_filter_destroy.o\
+	libcoopgamma_filter_initialise.o\
+	libcoopgamma_filter_marshal.o\
+	libcoopgamma_filter_query_destroy.o\
+	libcoopgamma_filter_query_initialise.o\
+	libcoopgamma_filter_query_marshal.o\
+	libcoopgamma_filter_query_unmarshal.o\
+	libcoopgamma_filter_table_destroy.o\
+	libcoopgamma_filter_table_initialise.o\
+	libcoopgamma_filter_table_marshal.o\
+	libcoopgamma_filter_table_unmarshal.o\
+	libcoopgamma_filter_unmarshal.o\
+	libcoopgamma_flush.o\
+	libcoopgamma_get_crtcs_recv.o\
+	libcoopgamma_get_crtcs_send.o\
+	libcoopgamma_get_crtcs_sync.o\
+	libcoopgamma_get_gamma_info_recv.o\
+	libcoopgamma_get_gamma_info_send.o\
+	libcoopgamma_get_gamma_info_sync.o\
+	libcoopgamma_get_gamma_recv.o\
+	libcoopgamma_get_gamma_send.o\
+	libcoopgamma_get_gamma_sync.o\
+	libcoopgamma_get_method_and_site.o\
+	libcoopgamma_get_methods.o\
+	libcoopgamma_get_pid_file.o\
+	libcoopgamma_get_socket_file.o\
+	libcoopgamma_queried_filter_destroy.o\
+	libcoopgamma_queried_filter_initialise.o\
+	libcoopgamma_queried_filter_marshal.o\
+	libcoopgamma_queried_filter_unmarshal.o\
+	libcoopgamma_ramps_destroy.o\
+	libcoopgamma_set_gamma_recv.o\
+	libcoopgamma_set_gamma_send.o\
+	libcoopgamma_set_gamma_sync.o\
+	libcoopgamma_set_nonblocking.o\
+	libcoopgamma_skip_message.o\
+	libcoopgamma_synchronise.o
+
+
+OBJ =\
+	$(OBJ_MAN3)\
+	libcoopgamma.o\
+	libcoopgamma_check_error__.o\
+	libcoopgamma_query__.o\
+	libcoopgamma_ramps_initialise_.o\
+	libcoopgamma_ramps_marshal_.o\
+	libcoopgamma_ramps_unmarshal_.o\
+	libcoopgamma_send_message__.o
+
 HDR = libcoopgamma.h
 
 LOBJ = $(OBJ:.o=.lo)
 
 
-include man.mk
+MAN0 =\
+	libcoopgamma.h.0
+
+MAN3 =\
+	$(OBJ_MAN3:.o=.3)\
+	libcoopgamma_ramps_initialise.3\
+	libcoopgamma_ramps_marshal.3\
+	libcoopgamma_ramps_unmarshal.3
+
+MAN7 =\
+	libcoopgamma.7
 
 
 all: libcoopgamma.a libcoopgamma.$(LIBEXT) test

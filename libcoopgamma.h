@@ -714,6 +714,8 @@ typedef struct libcoopgamma_context {
 
 	/**
 	 * File descriptor for the socket
+	 * 
+	 * `-1` if no file descriptor is used
 	 */
 	int fd;
 
