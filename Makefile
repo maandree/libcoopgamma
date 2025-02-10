@@ -15,10 +15,18 @@ LIB_MINOR = 2
 LIB_VERSION = $(LIB_MAJOR).$(LIB_MINOR)
 
 
+OBJ = libcoopgamma.o
+HDR = libcoopgamma.h
+
+LOBJ = $(OBJ:.o=.lo)
+
+
 include man.mk
 
 
 all: libcoopgamma.a libcoopgamma.$(LIBEXT) test
+$(OBJ): $(HDR)
+$(LOBJ): $(HDR)
 
 .c.o:
 	$(CC) -c -o $@ $< $(CPPFLAGS) $(CFLAGS)
@@ -26,12 +34,13 @@ all: libcoopgamma.a libcoopgamma.$(LIBEXT) test
 .c.lo:
 	$(CC) -fPIC -c -o $@ $< $(CPPFLAGS) $(CFLAGS)
 
-libcoopgamma.a: libcoopgamma.o
-	$(AR) rc $@ $?
+libcoopgamma.a: $(OBJ)
+	@rm -f -- $@
+	$(AR) rc $@ $(OBJ)
 	$(AR) s $@
 
-libcoopgamma.$(LIBEXT): libcoopgamma.lo
-	$(CC) $(LIBFLAGS) -o $@ libcoopgamma.lo $(LDFLAGS)
+libcoopgamma.$(LIBEXT): $(LOBJ)
+	$(CC) $(LIBFLAGS) -o $@ $(LOBJ) $(LDFLAGS)
 
 test: test.o libcoopgamma.a
 	$(CC) -o $@ test.o libcoopgamma.a $(LDFLAGS)
