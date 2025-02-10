@@ -16,9 +16,9 @@ libcoopgamma_error_marshal(const libcoopgamma_error_t *restrict this, void *rest
 {
 	MARSHAL_PROLOGUE;
 	marshal_version(LIBCOOPGAMMA_ERROR_VERSION);
-	marshal_prim(this->number, uint64_t);
-	marshal_prim(this->custom, int);
-	marshal_prim(this->server_side, int);
+	marshal_prim(this->number);
+	marshal_prim(this->custom);
+	marshal_prim(this->server_side);
 	marshal_string(this->description);
 	MARSHAL_EPILOGUE;
 }

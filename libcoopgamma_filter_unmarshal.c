@@ -18,14 +18,19 @@ libcoopgamma_filter_unmarshal(libcoopgamma_filter_t *restrict this, const void *
 	size_t n = 0;
 	UNMARSHAL_PROLOGUE;
 	memset(this, 0, sizeof(*this));
+	this->crtc = NULL;
+	this->class = NULL;
+	this->ramps.u8.red = NULL;
+	this->ramps.u8.green = NULL;
+	this->ramps.u8.blue = NULL;
 	unmarshal_version(LIBCOOPGAMMA_FILTER_VERSION);
 	unmarshal_version(LIBCOOPGAMMA_DEPTH_VERSION);
 	unmarshal_version(LIBCOOPGAMMA_LIFESPAN_VERSION);
-	unmarshal_prim(this->depth, libcoopgamma_depth_t);
-	unmarshal_prim(this->priority, int64_t);
+	unmarshal_prim(this->depth);
+	unmarshal_prim(this->priority);
 	unmarshal_string(this->crtc);
 	unmarshal_string(this->class);
-	unmarshal_prim(this->lifespan, libcoopgamma_lifespan_t);
+	unmarshal_prim(this->lifespan);
 	switch (this->depth) {
 	case LIBCOOPGAMMA_UINT8:  r = libcoopgamma_ramps_unmarshal(&(this->ramps.u8),  NNSUBBUF, &n); break;
 	case LIBCOOPGAMMA_UINT16: r = libcoopgamma_ramps_unmarshal(&(this->ramps.u16), NNSUBBUF, &n); break;

@@ -62,19 +62,31 @@ extern const char *argv0;
 #define UNMARSHAL_EPILOGUE\
 	return *np = off, LIBCOOPGAMMA_SUCCESS
 
-#define marshal_prim(datum, type)\
-	((buf != NULL ? *(type *)&buf[off] = (datum) : 0), off += sizeof(type))
+#define marshal_prim(datum)\
+	do {\
+		char *buf__ = (buf);\
+		size_t off__ = ((off) += sizeof(datum)) - sizeof(datum);\
+		if (buf__)\
+			memcpy(&buf__[off__], &(datum), sizeof(datum));\
+	} while (0)
 
-#define unmarshal_prim(datum, type)\
-	((datum) = *(const type *)&buf[off], off += sizeof(type))
+#define unmarshal_prim(datum)\
+	do {\
+		const char *buf__ = (buf);\
+		size_t off__ = ((off) += sizeof(datum)) - sizeof(datum);\
+		memcpy(&(datum), &buf__[off__], sizeof(datum));\
+	} while (0)
 
 #define marshal_version(version)\
-	marshal_prim(version, int)
+	do {\
+		int version__ = (version);\
+		marshal_prim(version__);\
+	} while (0)
 
 #define unmarshal_version(version)\
 	do {\
 		int version__;\
-		unmarshal_prim(version__, int);\
+		unmarshal_prim(version__);\
 		if (version__ < (version))\
 			return LIBCOOPGAMMA_INCOMPATIBLE_DOWNGRADE;\
 		if (version__ > (version))\
@@ -94,13 +106,17 @@ extern const char *argv0;
 	} while (0)
 
 #define marshal_string(datum)\
-	(!(datum) ? marshal_prim(0, char) :\
-	 (marshal_prim(1, char), marshal_buffer((datum), strlen(datum) + 1U)))
+	do {\
+		char nonnull__ = (char)!!(datum);\
+		marshal_prim(nonnull__);\
+		if (nonnull__)\
+			marshal_buffer((datum), strlen(datum) + 1U);\
+	} while (0)
 
 #define unmarshal_string(datum)\
 	do {\
 		char nonnull__;\
-		unmarshal_prim(nonnull__, char);\
+		unmarshal_prim(nonnull__);\
 		if (nonnull__)\
 			unmarshal_buffer((datum), strlen(&buf[off]) + 1U);\
 		else\

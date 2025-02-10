@@ -14,5 +14,7 @@ libcoopgamma_context_initialise(libcoopgamma_context_t *restrict this)
 	memset(this, 0, sizeof(*this));
 	this->fd = -1;
 	this->blocking = 1;
+	this->outbound = NULL;
+	this->inbound = NULL;
 	return 0;
 }

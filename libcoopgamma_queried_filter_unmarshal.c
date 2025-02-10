@@ -20,8 +20,12 @@ libcoopgamma_queried_filter_unmarshal(libcoopgamma_queried_filter_t *restrict th
 	size_t n = 0;
 	UNMARSHAL_PROLOGUE;
 	memset(this, 0, sizeof(*this));
+	this->class = NULL;
+	this->ramps.u8.red = NULL;
+	this->ramps.u8.green = NULL;
+	this->ramps.u8.blue = NULL;
 	unmarshal_version(LIBCOOPGAMMA_QUERIED_FILTER_VERSION);
-	unmarshal_prim(this->priority, int64_t);
+	unmarshal_prim(this->priority);
 	unmarshal_string(this->class);
 	switch (depth) {
 	case LIBCOOPGAMMA_UINT8:  r = libcoopgamma_ramps_unmarshal(&this->ramps.u8,  NNSUBBUF, &n); break;

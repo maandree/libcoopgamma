@@ -18,8 +18,8 @@ libcoopgamma_filter_query_unmarshal(libcoopgamma_filter_query_t *restrict this, 
 	this->crtc = NULL;
 	unmarshal_version(LIBCOOPGAMMA_FILTER_QUERY_VERSION);
 	unmarshal_string(this->crtc);
-	unmarshal_prim(this->coalesce, int);
-	unmarshal_prim(this->high_priority, int64_t);
-	unmarshal_prim(this->low_priority, int64_t);
+	unmarshal_prim(this->coalesce);
+	unmarshal_prim(this->high_priority);
+	unmarshal_prim(this->low_priority);
 	UNMARSHAL_EPILOGUE;
 }

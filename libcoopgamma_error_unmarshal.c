@@ -17,9 +17,9 @@ libcoopgamma_error_unmarshal(libcoopgamma_error_t *restrict this, const void *re
 	UNMARSHAL_PROLOGUE;
 	this->description = NULL;
 	unmarshal_version(LIBCOOPGAMMA_ERROR_VERSION);
-	unmarshal_prim(this->number, uint64_t);
-	unmarshal_prim(this->custom, int);
-	unmarshal_prim(this->server_side, int);
+	unmarshal_prim(this->number);
+	unmarshal_prim(this->custom);
+	unmarshal_prim(this->server_side);
 	unmarshal_string(this->description);
 	UNMARSHAL_EPILOGUE;
 }

@@ -20,9 +20,9 @@ libcoopgamma_ramps_unmarshal_(void *restrict this, const void *restrict vbuf,
 	libcoopgamma_ramps8_t *restrict this8 = (libcoopgamma_ramps8_t *restrict)this;
 	UNMARSHAL_PROLOGUE;
 	unmarshal_version(LIBCOOPGAMMA_RAMPS_VERSION);
-	unmarshal_prim(this8->red_size, size_t);
-	unmarshal_prim(this8->green_size, size_t);
-	unmarshal_prim(this8->blue_size, size_t);
+	unmarshal_prim(this8->red_size);
+	unmarshal_prim(this8->green_size);
+	unmarshal_prim(this8->blue_size);
 	unmarshal_buffer(this8->red, (this8->red_size + this8->green_size + this8->blue_size) * width);
 	this8->green = this8->red + this8->red_size * width;
 	this8->blue = this8->green + this8->green_size * width;

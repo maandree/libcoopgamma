@@ -18,11 +18,11 @@ libcoopgamma_filter_table_marshal(const libcoopgamma_filter_table_t *restrict th
 	MARSHAL_PROLOGUE;
 	marshal_version(LIBCOOPGAMMA_FILTER_TABLE_VERSION);
 	marshal_version(LIBCOOPGAMMA_DEPTH_VERSION);
-	marshal_prim(this->depth, libcoopgamma_depth_t);
-	marshal_prim(this->red_size, size_t);
-	marshal_prim(this->green_size, size_t);
-	marshal_prim(this->blue_size, size_t);
-	marshal_prim(this->filter_count, size_t);
+	marshal_prim(this->depth);
+	marshal_prim(this->red_size);
+	marshal_prim(this->green_size);
+	marshal_prim(this->blue_size);
+	marshal_prim(this->filter_count);
 	for (i = 0; i < this->filter_count; i++)
 		off += libcoopgamma_queried_filter_marshal(&this->filters[i], SUBBUF, this->depth);
 	MARSHAL_EPILOGUE;

@@ -18,7 +18,7 @@ libcoopgamma_queried_filter_marshal(const libcoopgamma_queried_filter_t *restric
 {
 	MARSHAL_PROLOGUE;
 	marshal_version(LIBCOOPGAMMA_QUERIED_FILTER_VERSION);
-	marshal_prim(this->priority, int64_t);
+	marshal_prim(this->priority);
 	marshal_string(this->class);
 	switch (depth) {
 	case LIBCOOPGAMMA_UINT8:  off += libcoopgamma_ramps_marshal(&this->ramps.u8,  SUBBUF); break;

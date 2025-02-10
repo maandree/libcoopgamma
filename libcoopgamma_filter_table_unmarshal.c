@@ -21,11 +21,11 @@ libcoopgamma_filter_table_unmarshal(libcoopgamma_filter_table_t *restrict this, 
 	this->filters = NULL;
 	unmarshal_version(LIBCOOPGAMMA_FILTER_TABLE_VERSION);
 	unmarshal_version(LIBCOOPGAMMA_DEPTH_VERSION);
-	unmarshal_prim(this->depth, libcoopgamma_depth_t);
-	unmarshal_prim(this->red_size, size_t);
-	unmarshal_prim(this->green_size, size_t);
-	unmarshal_prim(this->blue_size, size_t);
-	unmarshal_prim(fn, size_t);
+	unmarshal_prim(this->depth);
+	unmarshal_prim(this->red_size);
+	unmarshal_prim(this->green_size);
+	unmarshal_prim(this->blue_size);
+	unmarshal_prim(fn);
 	this->filters = malloc(fn * sizeof(*this->filters));
 	if (!this->filters)
 		return LIBCOOPGAMMA_ERRNO_SET;

@@ -18,24 +18,26 @@ libcoopgamma_context_unmarshal(libcoopgamma_context_t *restrict this, const void
 	int r;
 	UNMARSHAL_PROLOGUE;
 	memset(this, 0, sizeof(*this));
+	this->outbound = NULL;
+	this->inbound = NULL;
 	unmarshal_version(LIBCOOPGAMMA_CONTEXT_VERSION);
-	unmarshal_prim(this->fd, int);
+	unmarshal_prim(this->fd);
 	r = libcoopgamma_error_unmarshal(&this->error, NNSUBBUF, &n);
 	if (r != LIBCOOPGAMMA_SUCCESS)
 		return r;
 	off += n;
-	unmarshal_prim(this->message_id, uint32_t);
-	unmarshal_prim(this->outbound_head, size_t);
+	unmarshal_prim(this->message_id);
+	unmarshal_prim(this->outbound_head);
 	this->outbound_size = this->outbound_head;
 	unmarshal_buffer(this->outbound, this->outbound_head);
-	unmarshal_prim(this->inbound_head, size_t);
+	unmarshal_prim(this->inbound_head);
 	this->inbound_size = this->inbound_head;
 	unmarshal_buffer(this->inbound, this->inbound_head);
-	unmarshal_prim(this->length, size_t);
-	unmarshal_prim(this->curline, size_t);
-	unmarshal_prim(this->in_response_to, uint32_t);
-	unmarshal_prim(this->have_all_headers, int);
-	unmarshal_prim(this->bad_message, int);
-	unmarshal_prim(this->blocking, int);
+	unmarshal_prim(this->length);
+	unmarshal_prim(this->curline);
+	unmarshal_prim(this->in_response_to);
+	unmarshal_prim(this->have_all_headers);
+	unmarshal_prim(this->bad_message);
+	unmarshal_prim(this->blocking);
 	UNMARSHAL_EPILOGUE;
 }

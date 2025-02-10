@@ -18,11 +18,11 @@ libcoopgamma_filter_marshal(const libcoopgamma_filter_t *restrict this, void *re
 	marshal_version(LIBCOOPGAMMA_FILTER_VERSION);
 	marshal_version(LIBCOOPGAMMA_DEPTH_VERSION);
 	marshal_version(LIBCOOPGAMMA_LIFESPAN_VERSION);
-	marshal_prim(this->depth, libcoopgamma_depth_t);
-	marshal_prim(this->priority, int64_t);
+	marshal_prim(this->depth);
+	marshal_prim(this->priority);
 	marshal_string(this->crtc);
 	marshal_string(this->class);
-	marshal_prim(this->lifespan, libcoopgamma_lifespan_t);
+	marshal_prim(this->lifespan);
 	switch (this->depth) {
 	case LIBCOOPGAMMA_UINT8:  off += libcoopgamma_ramps_marshal(&this->ramps.u8,  SUBBUF); break;
 	case LIBCOOPGAMMA_UINT16: off += libcoopgamma_ramps_marshal(&this->ramps.u16, SUBBUF); break;

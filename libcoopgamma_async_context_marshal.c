@@ -16,7 +16,7 @@ libcoopgamma_async_context_marshal(const libcoopgamma_async_context_t *restrict 
 {
 	MARSHAL_PROLOGUE;
 	marshal_version(LIBCOOPGAMMA_ASYNC_CONTEXT_VERSION);
-	marshal_prim(this->message_id, uint32_t);
-	marshal_prim(this->coalesce, int);
+	marshal_prim(this->message_id);
+	marshal_prim(this->coalesce);
 	MARSHAL_EPILOGUE;
 }

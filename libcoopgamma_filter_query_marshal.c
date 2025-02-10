@@ -17,8 +17,8 @@ libcoopgamma_filter_query_marshal(const libcoopgamma_filter_query_t *restrict th
 	MARSHAL_PROLOGUE;
 	marshal_version(LIBCOOPGAMMA_FILTER_QUERY_VERSION);
 	marshal_string(this->crtc);
-	marshal_prim(this->coalesce, int);
-	marshal_prim(this->high_priority, int64_t);
-	marshal_prim(this->low_priority, int64_t);
+	marshal_prim(this->coalesce);
+	marshal_prim(this->high_priority);
+	marshal_prim(this->low_priority);
 	MARSHAL_EPILOGUE;
 }

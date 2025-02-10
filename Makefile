@@ -82,7 +82,9 @@ OBJ =\
 	libcoopgamma_ramps_unmarshal_.o\
 	libcoopgamma_send_message__.o
 
-HDR = libcoopgamma.h
+HDR =\
+	libcoopgamma.h\
+	common.h
 
 LOBJ = $(OBJ:.o=.lo)
 

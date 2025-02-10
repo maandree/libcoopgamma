@@ -16,7 +16,7 @@ libcoopgamma_async_context_unmarshal(libcoopgamma_async_context_t *restrict this
 {
 	UNMARSHAL_PROLOGUE;
 	unmarshal_version(LIBCOOPGAMMA_ASYNC_CONTEXT_VERSION);
-	unmarshal_prim(this->message_id, uint32_t);
-	unmarshal_prim(this->coalesce, int);
+	unmarshal_prim(this->message_id);
+	unmarshal_prim(this->coalesce);
 	UNMARSHAL_EPILOGUE;
 }

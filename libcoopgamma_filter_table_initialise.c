@@ -12,5 +12,6 @@ int
 libcoopgamma_filter_table_initialise(libcoopgamma_filter_table_t *restrict this)
 {
 	memset(this, 0, sizeof(*this));
+	this->filters = NULL;
 	return 0;
 }
