@@ -5,7 +5,7 @@
 /**
  * Check whether the server sent an error, if so copy it to `ctx`
  * 
- * This function will also reports EBADMSG if the message ID
+ * This function will also report EBADMSG if the message ID
  * that the message is a response to does not match the request
  * information, or if it is missing
  * 
@@ -13,7 +13,7 @@
  * @param   async  Information about the request
  * @return         1 if the server sent an error (even indicating success),
  *                 0 on success, -1 on failure. Information about failure
- *                 is copied `ctx`.
+ *                 is copied to `ctx`
  */
 int
 libcoopgamma_check_error__(libcoopgamma_context_t *restrict ctx, libcoopgamma_async_context_t *restrict async)

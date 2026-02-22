@@ -3,14 +3,12 @@ RUNTIME DEPENDENCIES:
 	libc
 	coopgammad
 
-
 BUILD DEPENDENCIES:
 
 	libc
 	cc
 	make
 	coreutils
-
 
 INSTALL DEPENDENCIES:
 

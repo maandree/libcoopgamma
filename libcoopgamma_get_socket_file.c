@@ -10,7 +10,7 @@
  * @param   method   The adjustment method, `NULL` for automatic
  * @param   site     The site, `NULL` for automatic
  * @return           The pathname of the server's socket, `NULL` on error
- *                   or if there server does have its own socket. The later
+ *                   or if the server does not have its own socket. The latter
  *                   case is detected by checking that `errno` is set to 0,
  *                   and is the case when communicating with a server in a
  *                   multi-server display server like mds.
